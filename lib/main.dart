@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: const ColorScheme(
           brightness: Brightness.light,
-          primary: Color(0xFF42A5F5), // Your exact color
+          primary: Color(0xFFFF0000), // Your exact color
           onPrimary: Colors.white,
           secondary: Colors.amber,
           onSecondary: Colors.black,
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
           background: Colors.white,
           onBackground: Colors.black,
           surface: Colors.white,
-          onSurface: Colors.black,
+          onSurface: Colors.black
         ),
         fontFamily: 'Fredoka', // default app font
         textTheme: TextTheme(

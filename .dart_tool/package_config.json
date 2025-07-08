@@ -51,9 +51,9 @@
     },
     {
       "name": "flutter_lints",
-      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_lints-5.0.0",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_lints-6.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_test",
@@ -81,9 +81,9 @@
     },
     {
       "name": "lints",
-      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/lints-5.1.1",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/lints-6.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.8"
     },
     {
       "name": "matcher",
