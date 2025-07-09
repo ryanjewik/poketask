@@ -243,6 +243,88 @@ class _MyScaffoldState extends State<MyScaffold>
                     ),
                   ),
                 ),
+                // Red, yellow, green Pokédex lights
+                Positioned(
+                  left: 95,
+                  top: 35,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.redAccent.withOpacity(0.9),
+                          Colors.redAccent.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        stops: [0.5, 0.8, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.7),
+                          blurRadius: 12,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 125,
+                  top: 35,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.yellowAccent.withOpacity(0.9),
+                          Colors.yellowAccent.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        stops: [0.5, 0.8, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.yellowAccent.withOpacity(0.7),
+                          blurRadius: 12,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 155,
+                  top: 35,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.greenAccent.withOpacity(0.9),
+                          Colors.greenAccent.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        stops: [0.5, 0.8, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.greenAccent.withOpacity(0.7),
+                          blurRadius: 12,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
