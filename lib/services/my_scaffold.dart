@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../pages/settings_page.dart';
-import '../pages/about_page.dart';
-import '../pages/contact_page.dart';
-import '../pages/help_page.dart';
+import '../pages/pokedex.dart';
+import '../pages/calendar.dart';
+import '../pages/taskspage.dart';
+import '../pages/battles_page.dart';
 import '../pages/homepage.dart';
 
 
@@ -341,11 +341,11 @@ class _MyScaffoldState extends State<MyScaffold>
               currentIndex: widget.selectedIndex,
               onTap: (i) => _onItemTapped(context, i),
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-                BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
+                BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
+                BottomNavigationBarItem(icon: Icon(Icons.earbuds_rounded), label: 'Tasks'),
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.contact_page), label: 'Contact'),
-                BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
+                BottomNavigationBarItem(icon: Icon(Icons.catching_pokemon), label: 'Pokedex'),
+                BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Battle'),
               ],
               selectedItemColor: Color(0xFF90CAF9),
               unselectedItemColor: Colors.white,
@@ -360,7 +360,36 @@ class _MyScaffoldState extends State<MyScaffold>
 
   void _onItemTapped(BuildContext context, int index) {
     if (index == widget.selectedIndex) return;
-    // Your navigation logic here
+    Widget page;
+    switch (index) {
+      case 0:
+        page = CalendarPage();
+        break;
+      case 1:
+        page = TasksPage();
+        break;
+      case 2:
+        page = MyHomePage(title: 'Poketask');
+        break;
+      case 3:
+        page = PokedexPage();
+        break;
+      case 4:
+        page = BattlesPage();
+        break;
+      default:
+        page = MyHomePage(title: 'Poketask');
+    }
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation1, animation2) => page,
+        transitionDuration: Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
 }
 

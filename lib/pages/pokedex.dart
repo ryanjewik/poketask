@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/my_scaffold.dart';
 import 'homepage.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+class PokedexPage extends StatelessWidget {
+  const PokedexPage({super.key});
 
   @override
   Widget build(BuildContext context) {
