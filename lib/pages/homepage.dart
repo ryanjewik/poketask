@@ -46,93 +46,83 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/background/zigzag_background.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: MyScaffold(
-          selectedIndex: 2,
-          child: Center(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PokemonPage()),
-                          );
-                        },
-                        child: ScaleTransition(
-                          scale: _animation ?? AlwaysStoppedAnimation(1.0),
-                          child: Container(
-                            width: 300,
-                            height: 300,
-                            child: Image.asset(
-                              'assets/sprites/squirtle.png',
-                              fit: BoxFit.fill,
-                            ),
+      body: MyScaffold(
+        selectedIndex: 2,
+        child: Center(
+          child: Column(
+            children: <Widget>[
+              Expanded(
+                flex: 2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => PokemonPage()),
+                        );
+                      },
+                      child: ScaleTransition(
+                        scale: _animation ?? AlwaysStoppedAnimation(1.0),
+                        child: Container(
+                          width: 300,
+                          height: 300,
+                          child: Image.asset(
+                            'assets/sprites/squirtle.png',
+                            fit: BoxFit.fill,
                           ),
                         ),
-                      )
-                    ],
-                  ),
+                      ),
+                    )
+                  ],
                 ),
-                Expanded(
-                  flex: 1,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: 4.0, left: 8.0, right: 8.0),
-                      child: SizedBox(
-                        height: 200,
-                        child: Theme(
-                          data: Theme.of(context).copyWith(
-                            scrollbarTheme: ScrollbarThemeData(
-                              thumbColor: MaterialStateProperty.all(Color(0xFF95EEFA)),
-                              trackColor: MaterialStateProperty.all(Colors.transparent),
-                            ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 4.0, left: 8.0, right: 8.0),
+                    child: SizedBox(
+                      height: 200,
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                          scrollbarTheme: ScrollbarThemeData(
+                            thumbColor: MaterialStateProperty.all(Color(0xFF95EEFA)),
+                            trackColor: MaterialStateProperty.all(Colors.transparent),
                           ),
-                          child: Scrollbar(
-                            thumbVisibility: true,
-                            trackVisibility: true,
-                            interactive: true,
-                            radius: Radius.circular(8),
-                            thickness: 4,
-                            scrollbarOrientation: ScrollbarOrientation.right,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white, width: 2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ListView.builder(
-                                itemCount: tasksToday.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return Container(
-                                    height: 50,
-                                    color: Colors.red[colorCodes[index]],
-                                    child: Center(child: Text('Entry ${tasksToday[index]}')),
-                                  );
-                                },
-                              ),
+                        ),
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          interactive: true,
+                          radius: Radius.circular(8),
+                          thickness: 4,
+                          scrollbarOrientation: ScrollbarOrientation.right,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.white, width: 2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ListView.builder(
+                              itemCount: tasksToday.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Container(
+                                  height: 50,
+                                  color: Colors.red[colorCodes[index]],
+                                  child: Center(child: Text('Entry ${tasksToday[index]}')),
+                                );
+                              },
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                )
-              ],
-
-            ),
-
+                ),
+              )
+            ],
           ),
         ),
       ),

@@ -8,12 +8,12 @@ import '../pages/homepage.dart';
 
 class PokedexClipper extends CustomClipper<Path> {
   /// % of the width that remains flat on the *left* bottom
-  static const double _bottomFlatLeftFrac = 0.35;   // 1/5 of the width
+  static const double _bottomFlatLeftFrac = 0.4;   // 1/5 of the width
   /// x-coordinate (as % of width) where the diagonal stops and
   /// the bottom becomes flat again on the right
-  static const double _bottomFlatRightStartFrac = 0.65; // 4/5 of width
+  static const double _bottomFlatRightStartFrac = 0.6; // 4/5 of width
   /// How deep the right side goes (0 = top, 1 = full height)
-  static const double _rightDepthFrac = 0.80;       // shorter than the left
+  static const double _rightDepthFrac = 0.60;       // shorter than the left
   static const double _curveRadius = 1.0;           // curve radius at bends
 
   @override
@@ -151,35 +151,96 @@ class _MyScaffoldState extends State<MyScaffold>
                     elevation: 0,
                     surfaceTintColor: Colors.transparent,
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    title: Transform.translate(
-                      offset: const Offset(0, -5), // Move up 5px
-                      child: Stack(
-                        children: [
-                          // Stroke
-                          Text(
-                            'Poketask',
-                            style: TextStyle(
-                              fontFamily: 'PressStart2P',
-                              fontSize: 18,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 3
-                                ..color = Colors.black,
+                    title: null,
+                    centerTitle: false,
+                    flexibleSpace: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 24, right: 10),
+                        child: Stack(
+                          children: [
+                            // Stroke
+                            Text(
+                              'Poketask',
+                              style: TextStyle(
+                                fontFamily: 'PressStart2P',
+                                fontSize: 14,
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 3
+                                  ..color = Colors.black,
+                              ),
                             ),
-                          ),
-                          // Fill
-                          const Text(
-                            'Poketask',
-                            style: TextStyle(
-                              fontFamily: 'PressStart2P',
-                              fontSize: 18,
-                              color: Colors.white,
+                            // Fill
+                            Text(
+                              'Poketask',
+                              style: TextStyle(
+                                fontFamily: 'PressStart2P',
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    centerTitle: true,
+                    // title: Transform.translate(
+                    //   offset: const Offset(3, -15), // Move up 5px
+                    //   child: Stack(
+                    //     children: [
+                    //       // Stroke
+                    //       Text(
+                    //         'Poketask',
+                    //         style: TextStyle(
+                    //           fontFamily: 'PressStart2P',
+                    //           fontSize: 20,
+                    //           foreground: Paint()
+                    //             ..style = PaintingStyle.stroke
+                    //             ..strokeWidth = 3
+                    //             ..color = Colors.black,
+                    //         ),
+                    //       ),
+                    //       // Fill
+                    //       const Text(
+                    //         'Poketask',
+                    //         style: TextStyle(
+                    //           fontFamily: 'PressStart2P',
+                    //           fontSize: 20,
+                    //           color: Colors.white,
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // centerTitle: true,
+                  ),
+                ),
+                // Blue glowing circular light on the top left (now on top of everything)
+                Positioned(
+                  left: 25,
+                  top: 25,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.blueAccent.withOpacity(0.9),
+                          Colors.blueAccent.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        stops: [0.4, 0.7, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blueAccent.withOpacity(0.7),
+                          blurRadius: 36,
+                          spreadRadius: 16,
+                        ),
+                      ],
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
                   ),
                 ),
               ],
