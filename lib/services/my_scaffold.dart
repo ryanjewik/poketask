@@ -1,0 +1,237 @@
+import 'package:flutter/material.dart';
+import '../pages/settings_page.dart';
+import '../pages/about_page.dart';
+import '../pages/contact_page.dart';
+import '../pages/help_page.dart';
+import '../pages/homepage.dart';
+
+
+class PokedexClipper extends CustomClipper<Path> {
+  /// % of the width that remains flat on the *left* bottom
+  static const double _bottomFlatLeftFrac = 0.35;   // 1/5 of the width
+  /// x-coordinate (as % of width) where the diagonal stops and
+  /// the bottom becomes flat again on the right
+  static const double _bottomFlatRightStartFrac = 0.65; // 4/5 of width
+  /// How deep the right side goes (0 = top, 1 = full height)
+  static const double _rightDepthFrac = 0.80;       // shorter than the left
+  static const double _curveRadius = 1.0;           // curve radius at bends
+
+  @override
+  Path getClip(Size size) {
+    final double w = size.width;
+    final double h = size.height;
+
+    final double leftFlatX = w * _bottomFlatLeftFrac;
+    final double rightFlatX = w * _bottomFlatRightStartFrac;
+    final double rightY = h * _rightDepthFrac;
+
+    final path = Path();
+
+    // ── 1. Top edge ──
+    path.moveTo(0, 0);
+    path.lineTo(w, 0);
+
+    // ── 2. Right vertical edge ──
+    path.lineTo(w, rightY - _curveRadius);
+
+    // ── 3. Curve from right vertical to bottom-right flat ──
+    path.quadraticBezierTo(
+        w, rightY,                 // control point
+        w - _curveRadius, rightY  // endpoint
+    );
+
+    // ── 4. Bottom-right flat section ──
+    path.lineTo(rightFlatX + _curveRadius, rightY);
+
+    // ── 5. Curve from flat into diagonal ──
+    path.quadraticBezierTo(
+        rightFlatX, rightY,                  // control
+        rightFlatX - _curveRadius, rightY + _curveRadius // end of curve
+    );
+
+    // ── 6. Diagonal down to left flat ──
+    path.lineTo(leftFlatX + _curveRadius, h - _curveRadius);
+
+    // ── 7. Curve into bottom-left flat ──
+    path.quadraticBezierTo(
+        leftFlatX, h,                         // control
+        leftFlatX - _curveRadius, h           // end of curve
+    );
+
+    // ── 8. Bottom-left flat section ──
+    path.lineTo(0, h);
+
+    // ── 9. Left vertical edge ──
+    path.lineTo(0, 0);
+
+    path.close();
+    return path;
+  }
+
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+
+
+
+
+class MyScaffold extends StatefulWidget implements PreferredSizeWidget{
+  final int selectedIndex;
+  final Widget child;
+
+  const MyScaffold({
+    super.key,
+    required this.selectedIndex,
+    required this.child,
+    this.height = 120
+  });
+
+  final double height;
+
+  @override
+  Size get preferredSize => Size.fromHeight(height);
+
+  @override
+  State<MyScaffold> createState() => _MyScaffoldState();
+}
+
+class _MyScaffoldState extends State<MyScaffold>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true); // Loops the animation
+
+    _pulse = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            'assets/background/zigzag_background.jpg',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(80),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Black border using CustomPaint (not clipped)
+                CustomPaint(
+                  painter: _PokedexBorderPainter(),
+                  size: const Size.fromHeight(80),
+                ),
+                // Main AppBar clipped to Pokedex shape
+                ClipPath(
+                  clipper: PokedexClipper(),
+                  child: AppBar(
+                    elevation: 0,
+                    surfaceTintColor: Colors.transparent,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    title: Transform.translate(
+                      offset: const Offset(0, -5), // Move up 5px
+                      child: Stack(
+                        children: [
+                          // Stroke
+                          Text(
+                            'Poketask',
+                            style: TextStyle(
+                              fontFamily: 'PressStart2P',
+                              fontSize: 18,
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 3
+                                ..color = Colors.black,
+                            ),
+                          ),
+                          // Fill
+                          const Text(
+                            'Poketask',
+                            style: TextStyle(
+                              fontFamily: 'PressStart2P',
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    centerTitle: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          body: widget.child,
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Colors.black, width: 3),
+              ),
+            ),
+            child: BottomNavigationBar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              type: BottomNavigationBarType.fixed,
+              currentIndex: widget.selectedIndex,
+              onTap: (i) => _onItemTapped(context, i),
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+                BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.contact_page), label: 'Contact'),
+                BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
+              ],
+              selectedItemColor: Color(0xFF90CAF9),
+              unselectedItemColor: Colors.white,
+              selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+              unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    if (index == widget.selectedIndex) return;
+    // Your navigation logic here
+  }
+}
+
+class _PokedexBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = PokedexClipper().getClip(size);
+    final paint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5;
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

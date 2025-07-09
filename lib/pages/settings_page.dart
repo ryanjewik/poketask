@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/my_scaffold.dart';
 import 'homepage.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -12,4 +13,3 @@ class SettingsPage extends StatelessWidget {
     );
   }
 }
-

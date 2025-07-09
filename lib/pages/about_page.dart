@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'homepage.dart';
+import '../services/my_scaffold.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -12,4 +13,3 @@ class AboutPage extends StatelessWidget {
     );
   }
 }
-
