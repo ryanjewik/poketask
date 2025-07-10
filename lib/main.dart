@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      //showPerformanceOverlay: true,
       title: 'Poketask',
       theme: ThemeData(
         useMaterial3: true,
@@ -23,8 +24,6 @@ class MyApp extends StatelessWidget {
           onSecondary: Colors.black,
           error: Colors.red,
           onError: Colors.white,
-          background: Colors.white,
-          onBackground: Colors.black,
           surface: Colors.white,
           onSurface: Colors.black
         ),

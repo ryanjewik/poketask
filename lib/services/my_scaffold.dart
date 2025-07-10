@@ -5,7 +5,7 @@ import '../pages/taskspage.dart';
 import '../pages/battles_page.dart';
 import '../pages/homepage.dart';
 
-
+//shape to draw pokedex header
 class PokedexClipper extends CustomClipper<Path> {
   /// % of the width that remains flat on the *left* bottom
   static const double _bottomFlatLeftFrac = 0.4;   // 1/5 of the width
@@ -124,237 +124,198 @@ class _MyScaffoldState extends State<MyScaffold>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Image.asset(
-            'assets/background/zigzag_background.jpg',
-            fit: BoxFit.cover,
-          ),
-        ),
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(80),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Black border using CustomPaint (not clipped)
-                CustomPaint(
-                  painter: _PokedexBorderPainter(),
-                  size: const Size.fromHeight(80),
-                ),
-                // Main AppBar clipped to Pokedex shape
-                ClipPath(
-                  clipper: PokedexClipper(),
-                  child: AppBar(
-                    elevation: 0,
-                    surfaceTintColor: Colors.transparent,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    title: null,
-                    centerTitle: false,
-                    flexibleSpace: Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 24, right: 10),
-                        child: Stack(
-                          children: [
-                            // Stroke
-                            Text(
-                              'Poketask',
-                              style: TextStyle(
-                                fontFamily: 'PressStart2P',
-                                fontSize: 14,
-                                foreground: Paint()
-                                  ..style = PaintingStyle.stroke
-                                  ..strokeWidth = 3
-                                  ..color = Colors.black,
-                              ),
-                            ),
-                            // Fill
-                            Text(
-                              'Poketask',
-                              style: TextStyle(
-                                fontFamily: 'PressStart2P',
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // title: Transform.translate(
-                    //   offset: const Offset(3, -15), // Move up 5px
-                    //   child: Stack(
-                    //     children: [
-                    //       // Stroke
-                    //       Text(
-                    //         'Poketask',
-                    //         style: TextStyle(
-                    //           fontFamily: 'PressStart2P',
-                    //           fontSize: 20,
-                    //           foreground: Paint()
-                    //             ..style = PaintingStyle.stroke
-                    //             ..strokeWidth = 3
-                    //             ..color = Colors.black,
-                    //         ),
-                    //       ),
-                    //       // Fill
-                    //       const Text(
-                    //         'Poketask',
-                    //         style: TextStyle(
-                    //           fontFamily: 'PressStart2P',
-                    //           fontSize: 20,
-                    //           color: Colors.white,
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    // centerTitle: true,
-                  ),
-                ),
-                // Blue glowing circular light on the top left (now on top of everything)
-                Positioned(
-                  left: 25,
-                  top: 25,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.blueAccent.withOpacity(0.9),
-                          Colors.blueAccent.withOpacity(0.5),
-                          Colors.transparent,
-                        ],
-                        stops: [0.4, 0.7, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blueAccent.withOpacity(0.7),
-                          blurRadius: 36,
-                          spreadRadius: 16,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.white, width: 3),
-                    ),
-                  ),
-                ),
-                // Red, yellow, green Pokédex lights
-                Positioned(
-                  left: 95,
-                  top: 35,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.redAccent.withOpacity(0.9),
-                          Colors.redAccent.withOpacity(0.5),
-                          Colors.transparent,
-                        ],
-                        stops: [0.5, 0.8, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.7),
-                          blurRadius: 12,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 125,
-                  top: 35,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.yellowAccent.withOpacity(0.9),
-                          Colors.yellowAccent.withOpacity(0.5),
-                          Colors.transparent,
-                        ],
-                        stops: [0.5, 0.8, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.yellowAccent.withOpacity(0.7),
-                          blurRadius: 12,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 155,
-                  top: 35,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.greenAccent.withOpacity(0.9),
-                          Colors.greenAccent.withOpacity(0.5),
-                          Colors.transparent,
-                        ],
-                        stops: [0.5, 0.8, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.greenAccent.withOpacity(0.7),
-                          blurRadius: 12,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-              ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Black border using CustomPaint (not clipped)
+            CustomPaint(
+              painter: _PokedexBorderPainter(),
+              size: const Size.fromHeight(80),
             ),
-          ),
-          body: widget.child,
-          bottomNavigationBar: Container(
-            decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Colors.black, width: 3),
+            // Main AppBar clipped to Pokedex shape
+            ClipPath(
+              clipper: PokedexClipper(),
+              child: AppBar(
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                title: null,
+                centerTitle: false,
+                flexibleSpace: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 24, right: 10),
+                    child: Stack(
+                      children: [
+                        // Stroke
+                        Text(
+                          'Poketask',
+                          style: TextStyle(
+                            fontFamily: 'PressStart2P',
+                            fontSize: 14,
+                            foreground: Paint()
+                              ..style = PaintingStyle.stroke
+                              ..strokeWidth = 3
+                              ..color = Colors.black,
+                          ),
+                        ),
+                        // Fill
+                        Text(
+                          'Poketask',
+                          style: TextStyle(
+                            fontFamily: 'PressStart2P',
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            child: BottomNavigationBar(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              type: BottomNavigationBarType.fixed,
-              currentIndex: widget.selectedIndex,
-              onTap: (i) => _onItemTapped(context, i),
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
-                BottomNavigationBarItem(icon: Icon(Icons.earbuds_rounded), label: 'Tasks'),
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.catching_pokemon), label: 'Pokedex'),
-                BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Battle'),
-              ],
-              selectedItemColor: Color(0xFF90CAF9),
-              unselectedItemColor: Colors.white,
-              selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
-              unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+            // Blue glowing circular light on the top left (now on top of everything)
+            Positioned(
+              left: 25,
+              top: 25,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.blueAccent.withValues(alpha: 0.9),
+                      Colors.blueAccent.withValues(alpha: .5),
+                      Colors.transparent,
+                    ],
+                    stops: [0.4, 0.7, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blueAccent.withValues(alpha: 0.7),
+                      blurRadius: 36,
+                      spreadRadius: 16,
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+              ),
             ),
+            // Red, yellow, green Pokédex lights
+            Positioned(
+              left: 95,
+              top: 35,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.redAccent.withValues(alpha: 0.9),
+                      Colors.redAccent.withValues(alpha: 0.5),
+                      Colors.transparent,
+                    ],
+                    stops: [0.5, 0.8, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withValues(alpha: 0.7),
+                      blurRadius: 12,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 125,
+              top: 35,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.yellowAccent.withValues(alpha: 0.9),
+                      Colors.yellowAccent.withValues(alpha: 0.5),
+                      Colors.transparent,
+                    ],
+                    stops: [0.5, 0.8, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.yellowAccent.withValues(alpha: 0.7),
+                      blurRadius: 12,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 155,
+              top: 35,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.greenAccent.withValues(alpha: 0.9),
+                      Colors.greenAccent.withValues(alpha: 0.5),
+                      Colors.transparent,
+                    ],
+                    stops: [0.5, 0.8, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.greenAccent.withValues(alpha: 0.7),
+                      blurRadius: 12,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: widget.child,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Colors.black, width: 3),
           ),
         ),
-      ],
+        child: BottomNavigationBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          type: BottomNavigationBarType.fixed,
+          currentIndex: widget.selectedIndex,
+          onTap: (i) => _onItemTapped(context, i),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
+            BottomNavigationBarItem(icon: Icon(Icons.earbuds_rounded), label: 'Tasks'),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.catching_pokemon), label: 'Pokedex'),
+            BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Battle'),
+          ],
+          selectedItemColor: Color(0xFF90CAF9),
+          unselectedItemColor: Colors.white,
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
@@ -393,6 +354,8 @@ class _MyScaffoldState extends State<MyScaffold>
   }
 }
 
+
+//draws black border around the pokedex shape
 class _PokedexBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

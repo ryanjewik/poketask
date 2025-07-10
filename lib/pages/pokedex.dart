@@ -8,8 +8,8 @@ class PokedexPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
-      selectedIndex: 0,
-      child: Center(child: Text('Settings Page')),
+      selectedIndex: 3, // Pokedex tab index is 3
+      child: Center(child: Text('Pokedex Page')),
     );
   }
 }

@@ -56,10 +56,34 @@
       "languageVersion": "3.8"
     },
     {
+      "name": "flutter_localizations",
+      "rootUri": "file:///C:/Users/owner/Downloads/flutter/packages/flutter_localizations",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "flutter_test",
       "rootUri": "file:///C:/Users/owner/Downloads/flutter/packages/flutter_test",
       "packageUri": "lib/",
       "languageVersion": "3.7"
+    },
+    {
+      "name": "http",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/http-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "http_parser",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/http_parser-4.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "intl",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.20.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "leak_tracker",
@@ -140,6 +164,30 @@
       "languageVersion": "3.1"
     },
     {
+      "name": "syncfusion_flutter_calendar",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_calendar-30.1.39",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_flutter_core",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_core-30.1.39",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_flutter_datepicker",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_datepicker-30.1.39",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_localizations",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_localizations-30.1.39",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "term_glyph",
       "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/term_glyph-1.2.2",
       "packageUri": "lib/",
@@ -148,6 +196,18 @@
     {
       "name": "test_api",
       "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/test_api-0.7.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "timezone",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/timezone-0.10.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
+    },
+    {
+      "name": "typed_data",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/typed_data-1.4.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -164,6 +224,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "web",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/web-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "poketask",
       "rootUri": "../",
       "packageUri": "lib/",
@@ -173,6 +239,6 @@
   "generator": "pub",
   "generatorVersion": "3.8.1",
   "flutterRoot": "file:///C:/Users/owner/Downloads/flutter",
-  "flutterVersion": "3.32.5",
+  "flutterVersion": "3.32.6",
   "pubCache": "file:///C:/Users/owner/AppData/Local/Pub/Cache"
 }
