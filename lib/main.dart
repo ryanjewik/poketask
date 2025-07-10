@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:poketask/pages/taskspage.dart';
+import 'package:poketask/pages/threads_page.dart';
+import 'package:poketask/pages/folders_page.dart';
 import 'pages/homepage.dart';
 
 void main() {
@@ -34,8 +37,12 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const MyHomePage(title: 'PokeTask Home Page'),
+      initialRoute: 'tasks',
+        routes: {
+        'tasks': (context) => const TasksPage(),
+        '/threads': (context) => const ThreadsPage(),
+        '/folders': (context) => const FoldersPage(),
+        }
     );
   }
 }
-
-

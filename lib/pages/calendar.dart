@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'homepage.dart';
 import '../services/my_scaffold.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../../models/meeting.dart';
+import '../../models/task.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -12,20 +12,20 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  late List<Meeting> _meetings;
-  late MeetingDataSource _dataSource;
+  late List<Task> _tasks;
+  late TaskDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
-    _meetings = _getDataSource();
-    _dataSource = MeetingDataSource(_meetings);
+    _tasks = _getDataSource();
+    _dataSource = TaskDataSource(_tasks);
   }
 
-  void _addMeeting(Meeting meeting) {
+  void _addTask(Task task) {
     setState(() {
-      _meetings.add(meeting);
-      _dataSource = MeetingDataSource(_meetings);
+      _tasks.add(task);
+      _dataSource = TaskDataSource(_tasks);
     });
   }
 
@@ -58,15 +58,15 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 ),
                 appointmentBuilder: (context, details) {
-                  final Meeting meeting = details.appointments.first as Meeting;
+                  final Task task = details.appointments.first as Task;
                   return Container(
                     decoration: BoxDecoration(
-                      color: meeting.background,
+                      color: task.background,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     padding: EdgeInsets.all(3),
                     child: Text(
-                      meeting.eventName,
+                      task.eventName,
                       style: TextStyle(
                         color: Color(0xFF353535), // Black text for contrast
                         fontSize: 12,
@@ -85,7 +85,7 @@ class _CalendarPageState extends State<CalendarPage> {
               right: 32,
               child: FloatingActionButton(
                 onPressed: () async {
-                  final newMeeting = await showModalBottomSheet<Meeting>(
+                  final newTask = await showModalBottomSheet<Task>(
                     context: context,
                     isScrollControlled: true,
                     shape: RoundedRectangleBorder(
@@ -95,11 +95,11 @@ class _CalendarPageState extends State<CalendarPage> {
                       padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom,
                         left: 16, right: 16, top: 24),
-                      child: _MeetingForm(),
+                      child: _TaskForm(),
                     ),
                   );
-                  if (newMeeting != null) {
-                    _addMeeting(newMeeting);
+                  if (newTask != null) {
+                    _addTask(newTask);
                   }
                 },
                 backgroundColor: Color(0xFFFF0000),
@@ -113,20 +113,20 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  List<Meeting> _getDataSource() {
-    final List<Meeting> meetings = <Meeting>[];
+  List<Task> _getDataSource() {
+    final List<Task> tasks = <Task>[];
     final DateTime today = DateTime.now();
     final DateTime startTime =
     DateTime(today.year, today.month, today.day, 9, 0, 0);
     final DateTime endTime = startTime.add(const Duration(hours: 2));
-    meetings.add(
-        Meeting(eventName: 'Conference', from: startTime, to: endTime));
-    return meetings;
+    tasks.add(
+        Task(eventName: 'Conference', from: startTime, to: endTime));
+    return tasks;
   }
 }
 
-class MeetingDataSource extends CalendarDataSource {
-  MeetingDataSource(List<Meeting> source){
+class TaskDataSource extends CalendarDataSource {
+  TaskDataSource(List<Task> source){
     appointments = source;
   }
 
@@ -156,12 +156,12 @@ class MeetingDataSource extends CalendarDataSource {
   }
 }
 
-class _MeetingForm extends StatefulWidget {
+class _TaskForm extends StatefulWidget {
   @override
-  State<_MeetingForm> createState() => _MeetingFormState();
+  State<_TaskForm> createState() => _TaskFormState();
 }
 
-class _MeetingFormState extends State<_MeetingForm> {
+class _TaskFormState extends State<_TaskForm> {
   final _formKey = GlobalKey<FormState>();
   String _title = '';
   DateTime _start = DateTime.now();
@@ -248,7 +248,7 @@ class _MeetingFormState extends State<_MeetingForm> {
               onPressed: () {
                 if (_formKey.currentState?.validate() ?? false) {
                   _formKey.currentState?.save();
-                  Navigator.of(context).pop(Meeting(
+                  Navigator.of(context).pop(Task(
                     eventName: _title,
                     from: _start,
                     to: _end,
