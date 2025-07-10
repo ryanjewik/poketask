@@ -3,6 +3,7 @@ import 'homepage.dart';
 import '../services/my_scaffold.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../models/task.dart';
+import '../services/task_form.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -95,7 +96,11 @@ class _CalendarPageState extends State<CalendarPage> {
                       padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom,
                         left: 16, right: 16, top: 24),
-                      child: _TaskForm(),
+                      child: TaskForm(
+                        onSubmit: (task) {
+                          Navigator.of(context).pop(task);
+                        },
+                      ),
                     ),
                   );
                   if (newTask != null) {
@@ -153,115 +158,5 @@ class TaskDataSource extends CalendarDataSource {
   @override
   bool isAllDay(int index) {
     return appointments![index].isAllDay;
-  }
-}
-
-class _TaskForm extends StatefulWidget {
-  @override
-  State<_TaskForm> createState() => _TaskFormState();
-}
-
-class _TaskFormState extends State<_TaskForm> {
-  final _formKey = GlobalKey<FormState>();
-  String _title = '';
-  DateTime _start = DateTime.now();
-  DateTime _end = DateTime.now().add(Duration(hours: 1));
-  bool _isAllDay = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Add Event', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Title'),
-              validator: (value) => value == null || value.isEmpty ? 'Enter a title' : null,
-              onSaved: (value) => _title = value ?? '',
-            ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ListTile(
-                    title: Text('Start'),
-                    subtitle: Text('${_start.toLocal()}'.split('.')[0]),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _start,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        final time = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.fromDateTime(_start),
-                        );
-                        if (time != null) {
-                          setState(() {
-                            _start = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                          });
-                        }
-                      }
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: ListTile(
-                    title: Text('End'),
-                    subtitle: Text('${_end.toLocal()}'.split('.')[0]),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _end,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        final time = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.fromDateTime(_end),
-                        );
-                        if (time != null) {
-                          setState(() {
-                            _end = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                          });
-                        }
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SwitchListTile(
-              title: Text('All Day'),
-              value: _isAllDay,
-              onChanged: (val) => setState(() => _isAllDay = val),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  _formKey.currentState?.save();
-                  Navigator.of(context).pop(Task(
-                    eventName: _title,
-                    from: _start,
-                    to: _end,
-                    isAllDay: _isAllDay,
-                  ));
-                }
-              },
-              child: Text('Add'),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
   }
 }

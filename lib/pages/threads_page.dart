@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/task.dart';
+import '../services/task_details_card.dart';
+import '../services/task_form.dart';
 
 class ThreadsPage extends StatefulWidget {
   const ThreadsPage({super.key});
@@ -58,7 +60,7 @@ class _ThreadsPageState extends State<ThreadsPage> {
           },
         ),
         title: Text('Threads'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.redAccent,
         elevation: 0,
       ),
       body: Container(
@@ -117,6 +119,43 @@ class _ThreadsPageState extends State<ThreadsPage> {
                     children: [
                       Text('Thread 1 Tasks', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text('Add Task to Thread 1'),
+                        onPressed: () async {
+                          final newTask = await showDialog<Task>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              content: SizedBox(
+                                width: 350,
+                                child: TaskForm(
+                                  onSubmit: (task) {
+                                    // Ensure the new task has threadId 1
+                                    final taskWithThread = Task(
+                                      eventName: task.eventName,
+                                      from: task.from,
+                                      to: task.to,
+                                      isAllDay: task.isAllDay,
+                                      background: task.background,
+                                      threadId: 1,
+                                      folderId: task.folderId,
+                                      notes: task.notes,
+                                      isCompleted: task.isCompleted,
+                                    );
+                                    Navigator.of(context).pop(taskWithThread);
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                          if (newTask != null) {
+                            setState(() {
+                              tasks.add(newTask);
+                            });
+                          }
+                        },
+                      ),
+                      SizedBox(height: 12),
                       Container(
                         height: 220, // Adjust as needed or make dynamic
                         width: 280,
@@ -127,29 +166,34 @@ class _ThreadsPageState extends State<ThreadsPage> {
                             if (idx.isEven) {
                               int i = idx ~/ 2;
                               final task = thread1Tasks[i];
-                              return Card(
-                                color: Colors.white,
-                                elevation: 2,
-                                margin: EdgeInsets.symmetric(vertical: 4),
-                                child: ListTile(
-                                  dense: true,
-                                  leading: Icon(
-                                    task.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                    color: task.isCompleted ? Colors.green : Colors.grey,
-                                  ),
-                                  title: Text(task.eventName, style: TextStyle(fontSize: 15)),
-                                  subtitle: Text(task.notes, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                  trailing: Text(
-                                    '${task.from.hour.toString().padLeft(2, '0')}:${task.from.minute.toString().padLeft(2, '0')} - '
-                                    '${task.to.hour.toString().padLeft(2, '0')}:${task.to.minute.toString().padLeft(2, '0')}',
-                                    style: TextStyle(fontSize: 12),
+                              return GestureDetector(
+                                onTap: () {
+                                  _handleTaskTap(task);
+                                },
+                                child: Card(
+                                  color: Colors.white,
+                                  elevation: 2,
+                                  margin: EdgeInsets.symmetric(vertical: 4),
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: Icon(
+                                      task.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                                      color: task.isCompleted ? Colors.green : Colors.grey,
+                                    ),
+                                    title: Text(task.eventName, style: TextStyle(fontSize: 15)),
+                                    subtitle: Text(task.notes, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    trailing: Text(
+                                      '${task.from.hour.toString().padLeft(2, '0')}:${task.from.minute.toString().padLeft(2, '0')} - '
+                                      '${task.to.hour.toString().padLeft(2, '0')}:${task.to.minute.toString().padLeft(2, '0')}',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
                                   ),
                                 ),
                               );
                             } else {
                               // Arrow between tasks
                               return Center(
-                                child: Icon(Icons.arrow_downward, color: Colors.blueAccent, size: 28),
+                                child: Icon(Icons.arrow_downward, color: Colors.redAccent, size: 28),
                               );
                             }
                           },
@@ -163,5 +207,21 @@ class _ThreadsPageState extends State<ThreadsPage> {
         ),
       ),
     );
+  }
+
+  void _handleTaskTap(Task task) async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => TaskDetailsCard(task: task),
+    );
+    if (result == 'delete') {
+      setState(() {
+        tasks.remove(task);
+      });
+    } else {
+      setState(() {
+        // This will update the UI if isCompleted or notes changed
+      });
+    }
   }
 }
