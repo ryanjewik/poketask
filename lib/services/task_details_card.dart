@@ -31,21 +31,70 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
+      titlePadding: EdgeInsets.zero,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: Text(widget.task.eventName)),
-          IconButton(
-            icon: Icon(
-              isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isCompleted ? Colors.green : Colors.grey,
+          if (widget.task.highPriority == true)
+            Container(
+              color: Colors.red[700],
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(Icons.priority_high, color: Colors.white, size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'High Priority',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            tooltip: isCompleted ? 'Completed' : 'Mark as complete',
-            onPressed: () {
-              setState(() {
-                isCompleted = !isCompleted;
-                widget.task.isCompleted = isCompleted;
-              });
-            },
+          if (widget.task.to.isBefore(DateTime.now()))
+            Container(
+              color: Colors.orange[800],
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.white, size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'Past Deadline',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(child: Text(widget.task.eventName)),
+                IconButton(
+                  icon: Icon(
+                    isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: isCompleted ? Colors.green : Colors.grey,
+                  ),
+                  tooltip: isCompleted ? 'Completed' : 'Mark as complete',
+                  onPressed: () {
+                    setState(() {
+                      isCompleted = !isCompleted;
+                      widget.task.isCompleted = isCompleted;
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),

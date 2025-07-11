@@ -11,6 +11,7 @@ class Task {
     this.folderId = 0,
     this.notes = '',
     this.isCompleted = false,
+    this.highPriority = false,
   });
 
   String eventName;
@@ -22,4 +23,5 @@ class Task {
   int folderId;
   String notes;
   bool isCompleted;
+  bool highPriority;
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:poketask/pages/pokemon.dart';
+import '../models/task.dart';
 import '../services/my_scaffold.dart';
+import '../services/task_details_card.dart';
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -12,14 +15,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   //task stuff
-  List <String> tasksToday = [
-    'Task 1: Complete Flutter tutorial',
-    'Task 2: Write blog post',
-    'Task 3: Attend team meeting',
-    'Task 4: Review pull requests',
-    'Task 5: Plan next sprint'
-    'Task 6: Build the calendar page'
-  ];
+  // List <String> tasksToday = [
+  //   'Task 1: Complete Flutter tutorial',
+  //   'Task 2: Write blog post',
+  //   'Task 3: Attend team meeting',
+  //   'Task 4: Review pull requests',
+  //   'Task 5: Plan next sprint'
+  //   'Task 6: Build the calendar page'
+  // ];
   List<int> colorCodes = <int>[400, 500, 600, 700, 800];
 
   //pokemon stuff
@@ -30,6 +33,49 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   final String trainerName = 'Ash Ketchum';
   final int trainerLevel = 5;
 
+  final List<Task> tasksToday = [
+    Task(
+      eventName: 'Discuss project requirements',
+      from: DateTime.now().subtract(Duration(hours: 2)),
+      to: DateTime.now().subtract(Duration(hours: 1)),
+      notes: 'Go over the main features and deadlines.',
+      threadId: 1,
+      folderId: 1,
+    ),
+    Task(
+      eventName: 'Review code',
+      from: DateTime.now().add(Duration(hours: 2)),
+      to: DateTime.now().add(Duration(hours: 3)),
+      notes: 'Check the latest PRs and leave comments.',
+      threadId: 1,
+      isCompleted: true,
+      folderId: 2,
+    ),
+    Task(
+      eventName: 'Write documentation',
+      from: DateTime.now().add(Duration(hours: 4)),
+      to: DateTime.now().add(Duration(hours: 5)),
+      notes: 'Document the new API endpoints.',
+      threadId: 1,
+      folderId: 2,
+    ),
+    Task(
+      eventName: 'Team meeting',
+      from: DateTime.now().add(Duration(hours: 6)),
+      to: DateTime.now().add(Duration(hours: 7)),
+      notes: 'Weekly sync with the whole team.',
+      threadId: 2,
+      folderId: 3,
+      highPriority: true,
+    ),
+    Task(
+      eventName: 'design battle system',
+      from: DateTime.now().subtract(Duration(hours: 2)),
+      to: DateTime.now().subtract(Duration(hours: 1)),
+      notes: 'how will the min max AI work',
+      threadId: 1,
+    ),
+  ];
 
 
   AnimationController? _controller;
@@ -62,6 +108,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    // Filter tasksToday for only today's tasks
+    final today = DateTime.now();
+    final List<Task> onlyTodayTasks = tasksToday.where((task) =>
+      task.from.year == today.year &&
+      task.from.month == today.month &&
+      task.from.day == today.day
+    ).toList();
+
     return Stack(
       children: [
         // Add zigzag background only on the homepage
@@ -173,12 +227,21 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: ListView.builder(
-                                      itemCount: tasksToday.length,
+                                      itemCount: onlyTodayTasks.length,
                                       itemBuilder: (BuildContext context, int index) {
-                                        return Container(
-                                          height: 50,
-                                          color: Colors.red[colorCodes[index]] ?? Colors.red[800],
-                                          child: Center(child: Text('Entry ${tasksToday[index]}')),
+                                        final task = onlyTodayTasks[index];
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (context) => TaskDetailsCard(task: task),
+                                            );
+                                          },
+                                          child: Container(
+                                            height: 50,
+                                            color: Colors.red[colorCodes[index % colorCodes.length]] ?? Colors.red[800],
+                                            child: Center(child: Text(task.eventName)),
+                                          ),
                                         );
                                       },
                                     ),

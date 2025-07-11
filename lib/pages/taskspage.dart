@@ -25,7 +25,7 @@ class TasksPage extends StatelessWidget {
                         Icon(
                           Icons.earbuds_rounded,
                           size: 100,
-                          color: Colors.blueAccent,
+                          color: Colors.redAccent,
                         ),
                         SizedBox(height: 20),
                         ElevatedButton(
@@ -63,7 +63,7 @@ class TasksPage extends StatelessWidget {
                         Icon(
                           Icons.folder,
                           size: 100,
-                          color: Colors.blueAccent,
+                          color: Colors.redAccent,
                         ),
                         SizedBox(height: 20),
                         ElevatedButton(

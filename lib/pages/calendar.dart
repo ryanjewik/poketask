@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/task_details_card.dart';
 import 'homepage.dart';
 import '../services/my_scaffold.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -16,6 +17,8 @@ class _CalendarPageState extends State<CalendarPage> {
   late List<Task> _tasks;
   late TaskDataSource _dataSource;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,7 @@ class _CalendarPageState extends State<CalendarPage> {
       _dataSource = TaskDataSource(_tasks);
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -60,22 +64,30 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
                 appointmentBuilder: (context, details) {
                   final Task task = details.appointments.first as Task;
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: task.background,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: EdgeInsets.all(3),
-                    child: Text(
-                      task.eventName,
-                      style: TextStyle(
-                        color: Color(0xFF353535), // Black text for contrast
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  return GestureDetector(
+                    onTap: () async {
+                      await showDialog(
+                        context: context,
+                        builder: (context) => TaskDetailsCard(task: task),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: task.background,
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      maxLines: 3, // Show up to 3 lines before ellipsis
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis, // Show ... only if no space left
+                      padding: EdgeInsets.all(3),
+                      child: Text(
+                        task.eventName,
+                        style: TextStyle(
+                          color: Color(0xFF353535), // Black text for contrast
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 3, // Show up to 3 lines before ellipsis
+                        softWrap: true,
+                        overflow: TextOverflow.ellipsis, // Show ... only if no space left
+                      ),
                     ),
                   );
                 },
@@ -119,13 +131,49 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<Task> _getDataSource() {
-    final List<Task> tasks = <Task>[];
-    final DateTime today = DateTime.now();
-    final DateTime startTime =
-    DateTime(today.year, today.month, today.day, 9, 0, 0);
-    final DateTime endTime = startTime.add(const Duration(hours: 2));
-    tasks.add(
-        Task(eventName: 'Conference', from: startTime, to: endTime));
+    final List<Task> tasks = [
+      Task(
+        eventName: 'Discuss project requirements',
+        from: DateTime.now().subtract(Duration(hours: 2)),
+        to: DateTime.now().subtract(Duration(hours: 1)),
+        notes: 'Go over the main features and deadlines.',
+        threadId: 1,
+        folderId: 1,
+      ),
+      Task(
+        eventName: 'Review code',
+        from: DateTime.now().add(Duration(hours: 2)),
+        to: DateTime.now().add(Duration(hours: 3)),
+        notes: 'Check the latest PRs and leave comments.',
+        threadId: 1,
+        isCompleted: true,
+        folderId: 2,
+      ),
+      Task(
+        eventName: 'Write documentation',
+        from: DateTime.now().add(Duration(hours: 4)),
+        to: DateTime.now().add(Duration(hours: 5)),
+        notes: 'Document the new API endpoints.',
+        threadId: 1,
+        folderId: 2,
+      ),
+      Task(
+        eventName: 'Team meeting',
+        from: DateTime.now().add(Duration(hours: 6)),
+        to: DateTime.now().add(Duration(hours: 7)),
+        notes: 'Weekly sync with the whole team.',
+        threadId: 2,
+        folderId: 3,
+        highPriority: true,
+      ),
+      Task(
+        eventName: 'design battle system',
+        from: DateTime.now().subtract(Duration(hours: 2)),
+        to: DateTime.now().subtract(Duration(hours: 1)),
+        notes: 'how will the min max AI work',
+        threadId: 1,
+      ),
+    ];
     return tasks;
   }
 }
