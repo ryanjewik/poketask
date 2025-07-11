@@ -37,8 +37,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const MyHomePage(title: 'PokeTask Home Page'),
-      initialRoute: 'tasks',
+      initialRoute: '/home',
         routes: {
+        'home': (context) => const MyHomePage(title: 'PokeTask Home Page'),
+        'calendar': (context) => const MyHomePage(title: 'PokeTask Calendar'),
         'tasks': (context) => const TasksPage(),
         '/threads': (context) => const ThreadsPage(),
         '/folders': (context) => const FoldersPage(),
