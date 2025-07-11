@@ -3,6 +3,8 @@ import 'package:poketask/pages/pokemon.dart';
 import '../models/task.dart';
 import '../services/my_scaffold.dart';
 import '../services/task_details_card.dart';
+import '../models/pokemon.dart';
+import '../models/trainer.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -14,24 +16,29 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  //task stuff
-  // List <String> tasksToday = [
-  //   'Task 1: Complete Flutter tutorial',
-  //   'Task 2: Write blog post',
-  //   'Task 3: Attend team meeting',
-  //   'Task 4: Review pull requests',
-  //   'Task 5: Plan next sprint'
-  //   'Task 6: Build the calendar page'
-  // ];
+
   List<int> colorCodes = <int>[400, 500, 600, 700, 800];
 
-  //pokemon stuff
-  final String pokemonNickname = 'Squirtle Squad';
-  final int pokemonLevel = 10;
 
-  //trainer stuff
-  final String trainerName = 'Ash Ketchum';
-  final int trainerLevel = 5;
+  // Example Pokemon object
+  final Pokemon pokemon = Pokemon(
+    nickname: 'Squirtle Squad',
+    level: 10,
+    pokemonType: 'Water',
+    pokemonId: 1,
+    trainerId: 1,
+    pokemonName: 'squirtle',
+  );
+
+  // Example Trainer object
+  final Trainer trainer = Trainer(
+    trainerName: 'Ash Ketchum',
+    trainerId: 1,
+    pokemonCount: 1,
+    dateJoined: '2023-10-01',
+    level: 5,
+    sex: 'male'
+  );
 
   final List<Task> tasksToday = [
     Task(
@@ -163,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                         child: Column(
                           children: [
                             Text(
-                              pokemonNickname,
+                              pokemon.nickname,
                               style: TextStyle(
                                 fontSize: 24,
                                 color: Colors.white,
@@ -171,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                               ),
                             ),
                             Text(
-                              'Level: $pokemonLevel',
+                              'Level: ${pokemon.level}',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.white70,
@@ -266,7 +273,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '$trainerName',
+                trainer.trainerName,
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -275,7 +282,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 ),
               ),
               Text(
-                'Level: $trainerLevel',
+                'Level: ${trainer.level}',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white70,

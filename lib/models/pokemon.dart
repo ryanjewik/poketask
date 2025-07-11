@@ -7,14 +7,14 @@ class Pokemon {
     required this.pokemonId,
     required this.pokemonType,
     this.level = 1,
-    this.ability1 = -1,
-    this.ability2 = -1,
-    this.ability3 = -1,
-    this.ability4 = -1,
+    this.ability1 = "",
+    this.ability2 = "",
+    this.ability3 = "",
+    this.ability4 = "",
     required this.trainerId,
     this.dateCaptured = '',
     this.attack = 100,
-    this.defense = 100,
+    this.health = 100,
 });
 
   String pokemonName;
@@ -22,17 +22,14 @@ class Pokemon {
   int pokemonId;
   String pokemonType;
   int level;
-  int ability1;
-  int ability2;
-  int ability3;
-  int ability4;
+  String ability1;
+  String ability2;
+  String ability3;
+  String ability4;
   int trainerId;
   String dateCaptured;
   int attack;
-  int defense;
+  int health;
 
-  @override
-  String toString() {
-    return 'Pokemon{pokemonName: $pokemonName, nickname: $nickname, pokemonId: $pokemonId, pokemonType: $pokemonType, level: $level, abilities: [$ability1, $ability2, $ability3, $ability4], trainerId: $trainerId, dateCaptured: $dateCaptured, attack: $attack, defense: $defense}';
-  }
+
 }
