@@ -155,8 +155,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                           child: ScaleTransition(
                             scale: _animation ?? AlwaysStoppedAnimation(1.0),
                             child: SizedBox(
-                              width: 300,
-                              height: 300,
+                              width: 250,
+                              height: 250,
                               child: Image.asset(
                                 'assets/sprites/squirtle.png',
                                 fit: BoxFit.fill,
@@ -166,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                         ),
                       ),
                       Transform.translate(
-                        offset: Offset(0, -35),
+                        offset: Offset(0, 0),
                         child: Column(
                           children: [
                             Text(

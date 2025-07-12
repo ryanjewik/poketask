@@ -3,6 +3,7 @@ import '../services/my_scaffold.dart';
 import 'homepage.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
+import '../models/pokemon_list.dart';
 
 class PokedexPage extends StatefulWidget {
   const PokedexPage({super.key});
@@ -42,9 +43,11 @@ class _PokedexPageState extends State<PokedexPage> {
       sex: 'male'
   );
 
+  Pokemon? selectedPokemon;
 
   @override
   Widget build(BuildContext context) {
+    final Pokemon displayPokemon = selectedPokemon ?? pokemon;
     return Container(
       color: Colors.white,
       child: Stack(
@@ -76,7 +79,7 @@ class _PokedexPageState extends State<PokedexPage> {
                                     left: -6,
                                     top: 5.0,
                                     child: Image.asset(
-                                      "assets/sprites/squirtle.png",
+                                      "assets/sprites/${displayPokemon.pokemonName.toLowerCase()}.png",
                                       color: Colors.black.withAlpha(250),
                                       colorBlendMode: BlendMode.srcATop,
                                       width: 200, // adjust as needed
@@ -86,7 +89,7 @@ class _PokedexPageState extends State<PokedexPage> {
                                   ),
                                   // Main image
                                   Image.asset(
-                                    "assets/sprites/${pokemon.pokemonName}.png",
+                                    "assets/sprites/${displayPokemon.pokemonName.toLowerCase()}.png",
                                     width: 200, // match shadow size
                                     height: 200,
                                     filterQuality: FilterQuality.high,
@@ -108,25 +111,25 @@ class _PokedexPageState extends State<PokedexPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        pokemon.nickname,
+                                        displayPokemon.nickname,
                                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(height: 2),
-                                      Text('Level: ${pokemon.level}', style: TextStyle(fontSize: 15)),
+                                      Text('Level: ${displayPokemon.level}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Type: ${pokemon.pokemonType}', style: TextStyle(fontSize: 15)),
+                                      Text('Type: ${displayPokemon.pokemonType}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Attack: ${pokemon.attack}', style: TextStyle(fontSize: 15)),
+                                      Text('Attack: ${displayPokemon.attack}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Health: ${pokemon.health}', style: TextStyle(fontSize: 15)),
+                                      Text('Health: ${displayPokemon.health}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Ability 1: ${pokemon.ability1}', style: TextStyle(fontSize: 15)),
+                                      Text('Ability 1: ${displayPokemon.ability1}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Ability 2: ${pokemon.ability2}', style: TextStyle(fontSize: 15)),
+                                      Text('Ability 2: ${displayPokemon.ability2}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Ability 3: ${pokemon.ability3}', style: TextStyle(fontSize: 15)),
+                                      Text('Ability 3: ${displayPokemon.ability3}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Ability 4: ${pokemon.ability4}', style: TextStyle(fontSize: 15)),
+                                      Text('Ability 4: ${displayPokemon.ability4}', style: TextStyle(fontSize: 13)),
                                     ],
                                   ),
                                 ))
@@ -136,7 +139,56 @@ class _PokedexPageState extends State<PokedexPage> {
                       Expanded(//pokemon selection
                         flex: 3,
                         child: Container(
-                          color: Colors.teal,
+                          decoration: BoxDecoration(
+                            color: Color(0x9ECACACA), // Light grey background
+                            border: Border.all(color: Colors.redAccent, width: 3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.all(8),
+                          child: GridView.count(
+                            // Create a grid with 2 columns.
+                            // If you change the scrollDirection to horizontal,
+                            // this produces 2 rows.
+                            crossAxisCount: 4,
+                            // Generate 100 widgets that display their index in the list.
+                            children: starterPokemonList.map((pokemon) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedPokemon = pokemon;
+                                  });
+                                },
+                                child: SizedBox(
+                                  width: 80, // Limit the width of each grid item
+                                  height: 100, // Limit the height of each grid item
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 50, // Limit image area
+                                        height: 50,
+                                        child: Image.asset(
+                                          'assets/sprites/${pokemon.pokemonName.toLowerCase()}.png',
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      SizedBox(
+                                        width: 60, // Limit text area width
+                                        child: Text(
+                                          pokemon.nickname,
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         )
                       )
                     ],

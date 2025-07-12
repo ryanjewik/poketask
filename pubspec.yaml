@@ -76,6 +76,11 @@ flutter:
     - assets/background/purple_background.jpg
     - assets/background/zigzag_background.jpg
     - assets/sprites/squirtle.png
+    - assets/sprites/squirtle2.png
+    - assets/sprites/charmander.png
+    - assets/sprites/charmander2.png
+    - assets/sprites/bulbasaur.png
+    - assets/sprites/bulbasaur2.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
