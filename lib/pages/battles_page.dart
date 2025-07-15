@@ -145,10 +145,20 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     childAspectRatio: 2.5, // Decrease aspect ratio for taller tiles
-                                    mainAxisSpacing: 8,
-                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 1,
+                                    crossAxisSpacing: 1,
                                     children: trainerPokemons.map((poke) => GestureDetector(
                                       onTap: () {
+                                        // Define slotIds here so it's in scope for the dialog
+                                        final slotIds = [
+                                          trainer.pokemonSlot1,
+                                          trainer.pokemonSlot2,
+                                          trainer.pokemonSlot3,
+                                          trainer.pokemonSlot4,
+                                          trainer.pokemonSlot5,
+                                          trainer.pokemonSlot6,
+                                        ];
+                                        int slotIndex = slotIds.indexOf(poke.pokemonId);
                                         showDialog(
                                           context: context,
                                           builder: (context) => AlertDialog(
@@ -161,13 +171,13 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                               children: [
                                                 Image.asset(
                                                   'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
-                                                  width: 48,
-                                                  height: 48,
+                                                  width: 72,
+                                                  height: 72,
                                                 ),
                                                 SizedBox(width: 12),
                                                 Text(
                                                   poke.nickname,
-                                                  style: TextStyle(fontSize: 20, color: Colors.amber, fontWeight: FontWeight.bold),
+                                                  style: TextStyle(fontSize: 28, color: Colors.amber, fontWeight: FontWeight.bold),
                                                 ),
                                               ],
                                             ),
@@ -175,22 +185,110 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text('Type: ${poke.pokemonType}', style: TextStyle(color: Colors.white)),
-                                                Text('Level: ${poke.level}', style: TextStyle(color: Colors.white)),
-                                                Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white)),
-                                                Text('Health: ${poke.health}', style: TextStyle(color: Colors.white)),
+                                                Text('Type: ${poke.pokemonType}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('Level: ${poke.level}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('Health: ${poke.health}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                 SizedBox(height: 8),
                                                 Text('Moves:', style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold)),
-                                                Text('1. ${poke.ability1}', style: TextStyle(color: Colors.white)),
-                                                Text('2. ${poke.ability2}', style: TextStyle(color: Colors.white)),
-                                                Text('3. ${poke.ability3}', style: TextStyle(color: Colors.white)),
-                                                Text('4. ${poke.ability4}', style: TextStyle(color: Colors.white)),
+                                                Text('1. ${poke.ability1}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('2. ${poke.ability2}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('3. ${poke.ability3}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('4. ${poke.ability4}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                               ],
                                             ),
                                             actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.of(context).pop(),
-                                                child: Text('Close', style: TextStyle(color: Colors.redAccent)),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.deepOrange,
+                                                      foregroundColor: Colors.white,
+                                                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                      textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                    ),
+                                                    onPressed: () async {
+                                                      Navigator.of(context).pop();
+                                                      // Show selection dialog for eligible Pokémon
+                                                      final eligiblePokemon = starterPokemonList.where((p) =>
+                                                        p.trainerId == trainer.trainerId &&
+                                                        !slotIds.contains(p.pokemonId)
+                                                      ).toList();
+                                                      if (eligiblePokemon.isEmpty) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(content: Text('No eligible Pokémon to select.')),
+                                                        );
+                                                        return;
+                                                      }
+                                                      final selected = await showDialog<Pokemon>(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          backgroundColor: Colors.grey[900],
+                                                          title: Text('Select a Pokémon', style: TextStyle(color: Colors.amber)),
+                                                          content: SizedBox(
+                                                            width: 300,
+                                                            height: 300,
+                                                            child: ListView.builder(
+                                                              itemCount: eligiblePokemon.length,
+                                                              itemBuilder: (context, idx) {
+                                                                final p = eligiblePokemon[idx];
+                                                                return ListTile(
+                                                                  leading: Image.asset(
+                                                                    'assets/sprites/${p.pokemonName.toLowerCase()}.png',
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                  ),
+                                                                  title: Text(p.nickname, style: TextStyle(color: Colors.white)),
+                                                                  subtitle: Text('Lv. ${p.level} - ${p.pokemonType}', style: TextStyle(color: Colors.white70)),
+                                                                  onTap: () {
+                                                                    Navigator.of(context).pop(p);
+                                                                  },
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () => Navigator.of(context).pop(),
+                                                              child: Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                      if (selected != null) {
+                                                        setState(() {
+                                                          switch (slotIndex) {
+                                                            case 0:
+                                                              trainer.pokemonSlot1 = selected.pokemonId;
+                                                              break;
+                                                            case 1:
+                                                              trainer.pokemonSlot2 = selected.pokemonId;
+                                                              break;
+                                                            case 2:
+                                                              trainer.pokemonSlot3 = selected.pokemonId;
+                                                              break;
+                                                            case 3:
+                                                              trainer.pokemonSlot4 = selected.pokemonId;
+                                                              break;
+                                                            case 4:
+                                                              trainer.pokemonSlot5 = selected.pokemonId;
+                                                              break;
+                                                            case 5:
+                                                              trainer.pokemonSlot6 = selected.pokemonId;
+                                                              break;
+                                                          }
+                                                        });
+                                                      }
+                                                    },
+                                                    child: Text('Change Pokémon'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(),
+                                                    child: Text('Close', style: TextStyle(color: Colors.redAccent)),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
@@ -198,18 +296,18 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                       },
                                       child: Container(
                                         margin: EdgeInsets.all(2),
-                                        height: 70, // Reduced vertical size
-                                        constraints: BoxConstraints(minHeight: 50, maxHeight: 70), // Reduced min/max height
+                                        height: 70,
+                                        constraints: BoxConstraints(minHeight: 50, maxHeight: 70),
                                         decoration: BoxDecoration(
                                           border: Border.all(color: Colors.white, width: 2),
                                           borderRadius: BorderRadius.circular(8),
                                           color: Colors.black.withAlpha(20),
                                         ),
-                                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), // Reduced vertical padding
+                                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           children: [
-                                            SizedBox(width: 12), // Shift content to the right
+                                            SizedBox(width: 12),
                                             Image.asset(
                                               'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
                                               width: 36,
@@ -221,13 +319,13 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(poke.nickname, style: TextStyle(fontSize: 14, color: Colors.white), overflow: TextOverflow.ellipsis),
-                                                  SizedBox(height: 4),
+                                                  Text(poke.nickname, style: TextStyle(fontSize: 20, color: Colors.white), overflow: TextOverflow.ellipsis),
+                                                  SizedBox(height: 2),
                                                   Row(
                                                     children: [
-                                                      Text('Lv. ${poke.level}', style: TextStyle(fontSize: 12, color: Colors.white)),
+                                                      Text('Lv. ${poke.level}', style: TextStyle(fontSize: 14, color: Colors.white)),
                                                       SizedBox(width: 8),
-                                                      Text(poke.pokemonType, style: TextStyle(fontSize: 12, color: Colors.white)),
+                                                      Text(poke.pokemonType, style: TextStyle(fontSize: 14, color: Colors.white)),
                                                     ],
                                                   ),
                                                 ],
@@ -270,24 +368,8 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                 thickness: 4,
                 color: Colors.amber,
               ),
-              Text(
-                'Top 5 Trainers by ' + (showByTasks ? 'Completed Tasks' : 'Total Wins'),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                  fontSize: 20,
-                  letterSpacing: 1.2,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 6,
-                      color: Colors.black.withAlpha(70),
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-              ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                padding: EdgeInsets.zero, // no margin above/below
                 child: ToggleButtons(
                   borderRadius: BorderRadius.circular(8),
                   selectedColor: Colors.white,
@@ -299,14 +381,15 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                       showByTasks = idx == 0;
                     });
                   },
+                  constraints: BoxConstraints(minWidth: 100, minHeight: 20),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Text('By Tasks', style: TextStyle(fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0), // minimal vertical padding
+                      child: Text('Tasks', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Text('By Wins', style: TextStyle(fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0), // minimal vertical padding
+                      child: Text('Wins', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
