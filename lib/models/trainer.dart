@@ -17,6 +17,7 @@ class Trainer {
     this.pokemonSlot4 = -1,
     this.pokemonSlot5 = -1,
     this.pokemonSlot6 = -1,
+    this.favoritePokemon = 1,
   });
 
   String trainerName;
@@ -35,6 +36,7 @@ class Trainer {
   int pokemonSlot4;
   int pokemonSlot5;
   int pokemonSlot6;
+  int favoritePokemon;
 
   @override
   String toString() {

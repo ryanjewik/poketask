@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:poketask/pages/pokemon.dart';
+import 'package:poketask/pages/fav_pokemon.dart';
 import '../models/task.dart';
+import '../models/trainer_list.dart';
 import '../services/my_scaffold.dart';
 import '../services/task_details_card.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
+import '../models/pokemon_list.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -30,15 +32,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     pokemonName: 'squirtle',
   );
 
-  // Example Trainer object
-  final Trainer trainer = Trainer(
-    trainerName: 'Ash Ketchum',
-    trainerId: 1,
-    pokemonCount: 1,
-    dateJoined: '2023-10-01',
-    level: 5,
-    sex: 'male'
-  );
+  // Remove the local Trainer instance and use the global trainerList
+  Trainer get trainer => trainerList.firstWhere((t) => t.trainerId == 1);
 
   final List<Task> tasksToday = [
     Task(
@@ -113,6 +108,15 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     super.dispose();
   }
 
+  Pokemon? get favoritedPokemon {
+    final favId = trainer.favoritePokemon;
+    try {
+      return starterPokemonList.firstWhere((p) => p.pokemonId == favId && p.trainerId == trainer.trainerId);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Filter tasksToday for only today's tasks
@@ -122,6 +126,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       task.from.month == today.month &&
       task.from.day == today.day
     ).toList();
+
+    final Pokemon? pokemon = favoritedPokemon ?? (() {
+      try {
+        return starterPokemonList.firstWhere((p) => p.pokemonId == trainer.pokemonSlot1);
+      } catch (e) {
+        return null;
+      }
+    })();
 
     return Stack(
       children: [
@@ -144,23 +156,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                     children: <Widget>[
                       SizedBox(height: 32),
                       Transform.translate(
-                        offset: Offset(0, -20), // Shift Squirtle image up by 50 pixels
+                        offset: Offset(0, -20),
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => PokemonPage()),
+                              MaterialPageRoute(builder: (context) => favPokemonPage()),
                             );
+                            setState(() {}); // Refresh after returning from fav page
                           },
                           child: ScaleTransition(
                             scale: _animation ?? AlwaysStoppedAnimation(1.0),
                             child: SizedBox(
                               width: 250,
                               height: 250,
-                              child: Image.asset(
-                                'assets/sprites/squirtle.png',
+                              child: pokemon != null ? Image.asset(
+                                'assets/sprites/${pokemon.pokemonName.toLowerCase()}.png',
                                 fit: BoxFit.fill,
-                              ),
+                              ) : SizedBox.shrink(),
                             ),
                           ),
                         ),
@@ -170,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                         child: Column(
                           children: [
                             Text(
-                              pokemon.nickname,
+                              pokemon?.nickname ?? '',
                               style: TextStyle(
                                 fontSize: 24,
                                 color: Colors.white,
@@ -178,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                               ),
                             ),
                             Text(
-                              'Level: ${pokemon.level}',
+                              pokemon != null ? 'Level: ${pokemon.level}' : '',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.white70,
