@@ -3,6 +3,7 @@ import 'package:poketask/pages/taskspage.dart';
 import 'package:poketask/pages/threads_page.dart';
 import 'package:poketask/pages/folders_page.dart';
 import 'pages/homepage.dart';
+import 'pages/pokebattle_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         'tasks': (context) => const TasksPage(),
         '/threads': (context) => const ThreadsPage(),
         '/folders': (context) => const FoldersPage(),
+        '/pokebattle': (context) => const PokebattlePage(),
         }
     );
   }

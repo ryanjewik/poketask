@@ -145,49 +145,52 @@ class _PokedexPageState extends State<PokedexPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: EdgeInsets.all(8),
-                          child: GridView.count(
-                            // Create a grid with 2 columns.
-                            // If you change the scrollDirection to horizontal,
-                            // this produces 2 rows.
-                            crossAxisCount: 4,
-                            // Generate 100 widgets that display their index in the list.
-                            children: starterPokemonList.map((pokemon) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedPokemon = pokemon;
-                                  });
-                                },
-                                child: SizedBox(
-                                  width: 80, // Limit the width of each grid item
-                                  height: 100, // Limit the height of each grid item
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 50, // Limit image area
-                                        height: 50,
-                                        child: Image.asset(
-                                          'assets/sprites/${pokemon.pokemonName.toLowerCase()}.png',
-                                          fit: BoxFit.contain,
+                          child: Scrollbar(
+                            thumbVisibility: true,
+                            child: GridView.count(
+                              // Create a grid with 2 columns.
+                              // If you change the scrollDirection to horizontal,
+                              // this produces 2 rows.
+                              crossAxisCount: 4,
+                              // Generate 100 widgets that display their index in the list.
+                              children: starterPokemonList.map((pokemon) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedPokemon = pokemon;
+                                    });
+                                  },
+                                  child: SizedBox(
+                                    width: 80, // Limit the width of each grid item
+                                    height: 100, // Limit the height of each grid item
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 50, // Limit image area
+                                          height: 50,
+                                          child: Image.asset(
+                                            'assets/sprites/${pokemon.pokemonName.toLowerCase()}.png',
+                                            fit: BoxFit.contain,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      SizedBox(
-                                        width: 60, // Limit text area width
-                                        child: Text(
-                                          pokemon.nickname,
-                                          style: Theme.of(context).textTheme.bodyMedium,
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                                        SizedBox(height: 4),
+                                        SizedBox(
+                                          width: 60, // Limit text area width
+                                          child: Text(
+                                            pokemon.nickname,
+                                            style: Theme.of(context).textTheme.bodyMedium,
+                                            textAlign: TextAlign.center,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
+                                );
+                              }).toList(),
+                            ),
                           ),
                         )
                       )
