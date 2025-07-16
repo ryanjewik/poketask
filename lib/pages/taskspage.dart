@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'homepage.dart';
 import '../services/my_scaffold.dart';
+import 'threads_page.dart';
 
 class TasksPage extends StatelessWidget {
-  const TasksPage({super.key});
+  final String trainerId;
+  const TasksPage({super.key, required this.trainerId});
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +14,7 @@ class TasksPage extends StatelessWidget {
       color: Colors.grey[200],
       child: MyScaffold(
         selectedIndex: 1, // Tasks tab index is 1
+        trainerId: trainerId,
         child: Container(// Background color behind everything
           child: Center(
             child: Column(
@@ -30,7 +33,12 @@ class TasksPage extends StatelessWidget {
                         SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/threads');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ThreadsPage(trainerId: trainerId),
+                              ),
+                            );
                           },
                           child: Text('Go to Threads'),
                         ),

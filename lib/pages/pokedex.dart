@@ -19,12 +19,14 @@ class _PokedexPageState extends State<PokedexPage> {
 
   // Example Pokemon object
   final Pokemon pokemon = Pokemon(
+    pokemonId: '1',
+    dateCaught: DateTime.now(),
+    pokemonName: 'Squirtle',
     nickname: 'Squirtle Squad',
+    type: 'Water',
     level: 10,
-    pokemonType: 'Water',
-    pokemonId: 1,
-    trainerId: 1,
-    pokemonName: 'squirtle',
+    experiencePoints: 100,
+    trainerId: '1',
     health: 100,
     attack: 100,
     ability1: "hydro pump",
@@ -35,12 +37,22 @@ class _PokedexPageState extends State<PokedexPage> {
 
   // Example Trainer object
   final Trainer trainer = Trainer(
-      trainerName: 'Ash Ketchum',
-      trainerId: 1,
-      pokemonCount: 1,
-      dateJoined: '2023-10-01',
-      level: 5,
-      sex: 'male'
+    trainerId: '1',
+    createdAt: DateTime.now(),
+    sex: 'male',
+    username: 'Ash Ketchum',
+    wins: 0,
+    losses: 0,
+    experiencePoints: 0,
+    level: 5,
+    pokemonSlot1: '',
+    pokemonSlot2: '',
+    pokemonSlot3: '',
+    pokemonSlot4: '',
+    pokemonSlot5: '',
+    pokemonSlot6: '',
+    favoritePokemon: '',
+    completedTasks: 0,
   );
 
   Pokemon? selectedPokemon;
@@ -62,6 +74,7 @@ class _PokedexPageState extends State<PokedexPage> {
           ),
             MyScaffold(
               selectedIndex: 3,
+              trainerId: trainer.trainerId,
               child: Center(
                   child: Column(
                     children: [
@@ -117,7 +130,7 @@ class _PokedexPageState extends State<PokedexPage> {
                                       SizedBox(height: 2),
                                       Text('Level: ${displayPokemon.level}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('Type: ${displayPokemon.pokemonType}', style: TextStyle(fontSize: 13)),
+                                      Text('Type: ${displayPokemon.type}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),
                                       Text('Attack: ${displayPokemon.attack}', style: TextStyle(fontSize: 13)),
                                       SizedBox(height: 2),

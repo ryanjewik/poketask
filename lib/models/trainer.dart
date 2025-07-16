@@ -1,45 +1,63 @@
-
 class Trainer {
   Trainer({
-    required this.trainerName,
     required this.trainerId,
-    this.pokemonCount = 0,
-    this.dateJoined = '',
-    this.level = 1,
-    this.experiencePoints = 0,
-    this.sex = 'Unknown',
-    this.wins = 0,
-    this.losses = 0,
-    this.completedTasks = 0,
-    this.pokemonSlot1 = 0,
-    this.pokemonSlot2 = -1,
-    this.pokemonSlot3 = -1,
-    this.pokemonSlot4 = -1,
-    this.pokemonSlot5 = -1,
-    this.pokemonSlot6 = -1,
-    this.favoritePokemon = 1,
+    required this.createdAt,
+    required this.sex,
+    required this.username,
+    required this.wins,
+    required this.losses,
+    required this.experiencePoints,
+    required this.level,
+    required this.pokemonSlot1,
+    required this.pokemonSlot2,
+    required this.pokemonSlot3,
+    required this.pokemonSlot4,
+    required this.pokemonSlot5,
+    required this.pokemonSlot6,
+    required this.favoritePokemon,
+    required this.completedTasks,
   });
 
-  String trainerName;
-  int trainerId;
-  int pokemonCount;
-  String dateJoined;
-  int level;
-  int experiencePoints;
+  String trainerId;
+  DateTime createdAt;
   String sex;
+  String username;
   int wins;
   int losses;
+  int experiencePoints;
+  int level;
+  String pokemonSlot1;
+  String pokemonSlot2;
+  String pokemonSlot3;
+  String pokemonSlot4;
+  String pokemonSlot5;
+  String pokemonSlot6;
+  String favoritePokemon;
   int completedTasks;
-  int pokemonSlot1;
-  int pokemonSlot2;
-  int pokemonSlot3;
-  int pokemonSlot4;
-  int pokemonSlot5;
-  int pokemonSlot6;
-  int favoritePokemon;
+
+  factory Trainer.fromJson(Map<String, dynamic> json) {
+    return Trainer(
+      trainerId: json['trainer_id']?.toString() ?? '',
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      sex: json['sex'] ?? '',
+      username: json['username'] ?? '',
+      wins: json['wins'] ?? 0,
+      losses: json['losses'] ?? 0,
+      experiencePoints: json['experience_points'] ?? 0,
+      level: json['level'] ?? 1,
+      pokemonSlot1: json['pokemon_slot_1']?.toString() ?? '',
+      pokemonSlot2: json['pokemon_slot_2']?.toString() ?? '',
+      pokemonSlot3: json['pokemon_slot_3']?.toString() ?? '',
+      pokemonSlot4: json['pokemon_slot_4']?.toString() ?? '',
+      pokemonSlot5: json['pokemon_slot_5']?.toString() ?? '',
+      pokemonSlot6: json['pokemon_slot_6']?.toString() ?? '',
+      favoritePokemon: json['favorite_pokemon']?.toString() ?? '',
+      completedTasks: json['completed_tasks'] ?? 0,
+    );
+  }
 
   @override
   String toString() {
-    return 'Trainer{trainerName: $trainerName, trainerId: $trainerId, pokemonCount: $pokemonCount, dateJoined: $dateJoined, level: $level, experiencePoints: $experiencePoints}';
+    return 'Trainer{trainerId: $trainerId, username: $username, sex: $sex, wins: $wins, losses: $losses, experiencePoints: $experiencePoints, level: $level, favoritePokemon: $favoritePokemon, completedTasks: $completedTasks}';
   }
 }

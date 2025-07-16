@@ -65,10 +65,10 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
       ];
       trainerPokemons = starterPokemonList.where((poke) => slotIds.contains(poke.pokemonId)).toList();
     }
-    // Get top 5 trainers by completedTasks or wins
+    // Get top 5 trainers by experiencePoints or wins
     List<Trainer> sortedTrainers = List<Trainer>.from(trainerList);
     if (showByTasks) {
-      sortedTrainers.sort((a, b) => b.completedTasks.compareTo(a.completedTasks));
+      sortedTrainers.sort((a, b) => b.experiencePoints.compareTo(a.experiencePoints));
     } else {
       sortedTrainers.sort((a, b) => b.wins.compareTo(a.wins));
     }
@@ -87,6 +87,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
           ),
           MyScaffold(
           selectedIndex: 4,
+          trainerId: trainer?.trainerId ?? '1',
           child: Column(
             children: [
               Expanded(
@@ -97,7 +98,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            trainer.trainerName,
+                            trainer.username,
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -114,7 +115,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Level: ${trainer.level}   Tasks Completed: ${trainer.completedTasks}',
+                            'Level: ${trainer.level}   XP: ${trainer.experiencePoints}',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white,
@@ -185,7 +186,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text('Type: ${poke.pokemonType}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                Text('Type: ${poke.type}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                 Text('Level: ${poke.level}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                 Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                 Text('Health: ${poke.health}', style: TextStyle(color: Colors.white, fontSize: 20)),
@@ -241,7 +242,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                                                     height: 40,
                                                                   ),
                                                                   title: Text(p.nickname, style: TextStyle(color: Colors.white)),
-                                                                  subtitle: Text('Lv. ${p.level} - ${p.pokemonType}', style: TextStyle(color: Colors.white70)),
+                                                                  subtitle: Text('Lv. ${p.level} - ${p.type}', style: TextStyle(color: Colors.white70)),
                                                                   onTap: () {
                                                                     Navigator.of(context).pop(p);
                                                                   },
@@ -325,7 +326,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                                     children: [
                                                       Text('Lv. ${poke.level}', style: TextStyle(fontSize: 14, color: Colors.white)),
                                                       SizedBox(width: 8),
-                                                      Text(poke.pokemonType, style: TextStyle(fontSize: 14, color: Colors.white)),
+                                                      Text(poke.type, style: TextStyle(fontSize: 14, color: Colors.white)),
                                                     ],
                                                   ),
                                                 ],
@@ -440,7 +441,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      t.trainerName,
+                                      t.username,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: index == 0 ? FontWeight.bold : FontWeight.w500,
@@ -453,7 +454,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                   Icon(Icons.emoji_events, color: Colors.amber, size: 16),
                                   SizedBox(width: 2),
                                   Text(
-                                    'Tasks: ${t.completedTasks}',
+                                    'XP: ${t.experiencePoints}',
                                     style: TextStyle(
                                       color: Colors.lightGreenAccent,
                                       fontWeight: FontWeight.bold,

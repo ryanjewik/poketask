@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../services/task_details_card.dart';
-import 'homepage.dart';
 import '../services/my_scaffold.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../models/task.dart';
 import '../services/task_form.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
-
+  const CalendarPage({super.key, required this.trainerId});
+  final String trainerId;
   @override
   State<CalendarPage> createState() => _CalendarPageState();
 }
@@ -17,13 +17,60 @@ class _CalendarPageState extends State<CalendarPage> {
   late List<Task> _tasks;
   late TaskDataSource _dataSource;
 
-
+  late String trainerId;
 
   @override
   void initState() {
     super.initState();
-    _tasks = _getDataSource();
+    trainerId = widget.trainerId;
+    _tasks = [];
     _dataSource = TaskDataSource(_tasks);
+    _fetchTasksForTrainer(trainerId);
+  }
+
+  Future<void> _fetchTasksForTrainer(String trainerId) async {
+    final supabase = Supabase.instance.client;
+    try {
+      // Fetch all folders for the trainer
+      final folderResponse = await supabase
+          .from('folder_table')
+          .select('folder_id, color')
+          .eq('trainer_id', trainerId);
+      // Build a folderId -> color map
+      final Map<String, String> folderColorMap = {};
+      if (folderResponse != null) {
+        for (final folder in folderResponse) {
+          final folderId = folder['folder_id']?.toString() ?? '';
+          final colorString = folder['color']?.toString() ?? '';
+          if (colorString.isNotEmpty) {
+            folderColorMap[folderId] = colorString;
+          }
+        }
+      }
+      // Fetch tasks
+      final response = await supabase
+          .from('task_table')
+          .select()
+          .eq('trainer_id', trainerId);
+      if (response != null) {
+        if (!mounted) return;
+        setState(() {
+          _tasks = List<Task>.from(
+            response.map((item) {
+              final task = Task.fromJson(item);
+              // Assign color hex string from folder map if available
+              if (folderColorMap.containsKey(task.folderId)) {
+                task.color = folderColorMap[task.folderId];
+              }
+              return task;
+            }),
+          );
+          _dataSource = TaskDataSource(_tasks);
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to fetch task or folder data: $e');
+    }
   }
 
   void _addTask(Task task) {
@@ -33,13 +80,13 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.grey[200], // Background color behind everything
       child: MyScaffold(
         selectedIndex: 0, // Calendar tab index is 0
+        trainerId: trainerId,
         child: Stack(
           children: [
             Center(
@@ -66,14 +113,20 @@ class _CalendarPageState extends State<CalendarPage> {
                   final Task task = details.appointments.first as Task;
                   return GestureDetector(
                     onTap: () async {
-                      await showDialog(
+                      final result = await showDialog(
                         context: context,
                         builder: (context) => TaskDetailsCard(task: task),
                       );
+                      if (result == 'delete') {
+                        setState(() {
+                          _tasks.removeWhere((t) => t.taskId == task.taskId);
+                          _dataSource = TaskDataSource(_tasks);
+                        });
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: task.background,
+                        color: _colorFromHex(task.color),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       padding: EdgeInsets.all(3),
@@ -104,14 +157,15 @@ class _CalendarPageState extends State<CalendarPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                     ),
-                    builder: (context) => Padding(
+                    builder: (modalContext) => Padding(
                       padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom,
                         left: 16, right: 16, top: 24),
                       child: TaskForm(
                         onSubmit: (task) {
-                          Navigator.of(context).pop(task);
+                          Navigator.of(modalContext).pop(task);
                         },
+                        trainerId: trainerId,
                       ),
                     ),
                   );
@@ -130,52 +184,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  List<Task> _getDataSource() {
-    final List<Task> tasks = [
-      Task(
-        eventName: 'Discuss project requirements',
-        from: DateTime.now().subtract(Duration(hours: 2)),
-        to: DateTime.now().subtract(Duration(hours: 1)),
-        notes: 'Go over the main features and deadlines.',
-        threadId: 1,
-        folderId: 1,
-      ),
-      Task(
-        eventName: 'Review code',
-        from: DateTime.now().add(Duration(hours: 2)),
-        to: DateTime.now().add(Duration(hours: 3)),
-        notes: 'Check the latest PRs and leave comments.',
-        threadId: 1,
-        isCompleted: true,
-        folderId: 2,
-      ),
-      Task(
-        eventName: 'Write documentation',
-        from: DateTime.now().add(Duration(hours: 4)),
-        to: DateTime.now().add(Duration(hours: 5)),
-        notes: 'Document the new API endpoints.',
-        threadId: 1,
-        folderId: 2,
-      ),
-      Task(
-        eventName: 'Team meeting',
-        from: DateTime.now().add(Duration(hours: 6)),
-        to: DateTime.now().add(Duration(hours: 7)),
-        notes: 'Weekly sync with the whole team.',
-        threadId: 2,
-        folderId: 3,
-        highPriority: true,
-      ),
-      Task(
-        eventName: 'design battle system',
-        from: DateTime.now().subtract(Duration(hours: 2)),
-        to: DateTime.now().subtract(Duration(hours: 1)),
-        notes: 'how will the min max AI work',
-        threadId: 1,
-      ),
-    ];
-    return tasks;
-  }
+
 }
 
 class TaskDataSource extends CalendarDataSource {
@@ -185,26 +194,39 @@ class TaskDataSource extends CalendarDataSource {
 
   @override
   DateTime getStartTime(int index) {
-    return appointments![index].from;
+    return appointments![index].startDate;
   }
 
   @override
   DateTime getEndTime(int index) {
-    return appointments![index].to;
+    return appointments![index].endDate;
   }
 
   @override
   String getSubject(int index) {
-    return appointments![index].eventName;
+    return appointments![index].taskText;
   }
 
   @override
   Color getColor(int index) {
-    return appointments![index].background;
+    final Task task = appointments![index] as Task;
+    // Use parsed color from hex, fallback to redAccent if null or invalid
+    return _colorFromHex(task.color) ?? Colors.redAccent;
   }
 
   @override
   bool isAllDay(int index) {
     return appointments![index].isAllDay;
+  }
+}
+
+Color _colorFromHex(String? hexColor) {
+  if (hexColor == null || hexColor.isEmpty) return Colors.redAccent;
+  String hex = hexColor.replaceAll('#', '');
+  if (hex.length == 6) hex = 'FF$hex'; // add alpha if missing
+  try {
+    return Color(int.parse('0x$hex'));
+  } catch (_) {
+    return Colors.redAccent;
   }
 }

@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   syncfusion_flutter_calendar: ^30.1.39
+  supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.1.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +83,11 @@ flutter:
     - assets/sprites/charmander.png
     - assets/sprites/charmander2.png
     - assets/sprites/bulbasaur.png
+    - assets/sprites/geodude.png
+    - assets/sprites/pikachu.png
+    - assets/sprites/onix.png
+    - assets/sprites/nidoking.png
+    - assets/sprites/wartortle.png
     - assets/sprites/bulbasaur2.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
@@ -89,6 +97,7 @@ flutter:
     - assets/background/desert-battle-background.jpg
     - assets/background/cave-battle-background.jpg
     - assets/background/beach-battle-background.jpg
+    - .env
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

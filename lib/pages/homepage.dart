@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:poketask/pages/fav_pokemon.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/task.dart';
-import '../models/trainer_list.dart';
 import '../services/my_scaffold.dart';
 import '../services/task_details_card.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
-import '../models/pokemon_list.dart';
 
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.title, required this.trainerId});
   final String title;
+  final String trainerId;
+
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -19,65 +20,21 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
 
+
   List<int> colorCodes = <int>[400, 500, 600, 700, 800];
 
 
-  // Example Pokemon object
-  final Pokemon pokemon = Pokemon(
-    nickname: 'Squirtle Squad',
-    level: 10,
-    pokemonType: 'Water',
-    pokemonId: 1,
-    trainerId: 1,
-    pokemonName: 'squirtle',
-  );
+
 
   // Remove the local Trainer instance and use the global trainerList
-  Trainer get trainer => trainerList.firstWhere((t) => t.trainerId == 1);
 
-  final List<Task> tasksToday = [
-    Task(
-      eventName: 'Discuss project requirements',
-      from: DateTime.now().subtract(Duration(hours: 2)),
-      to: DateTime.now().subtract(Duration(hours: 1)),
-      notes: 'Go over the main features and deadlines.',
-      threadId: 1,
-      folderId: 1,
-    ),
-    Task(
-      eventName: 'Review code',
-      from: DateTime.now().add(Duration(hours: 2)),
-      to: DateTime.now().add(Duration(hours: 3)),
-      notes: 'Check the latest PRs and leave comments.',
-      threadId: 1,
-      isCompleted: true,
-      folderId: 2,
-    ),
-    Task(
-      eventName: 'Write documentation',
-      from: DateTime.now().add(Duration(hours: 4)),
-      to: DateTime.now().add(Duration(hours: 5)),
-      notes: 'Document the new API endpoints.',
-      threadId: 1,
-      folderId: 2,
-    ),
-    Task(
-      eventName: 'Team meeting',
-      from: DateTime.now().add(Duration(hours: 6)),
-      to: DateTime.now().add(Duration(hours: 7)),
-      notes: 'Weekly sync with the whole team.',
-      threadId: 2,
-      folderId: 3,
-      highPriority: true,
-    ),
-    Task(
-      eventName: 'design battle system',
-      from: DateTime.now().subtract(Duration(hours: 2)),
-      to: DateTime.now().subtract(Duration(hours: 1)),
-      notes: 'how will the min max AI work',
-      threadId: 1,
-    ),
-  ];
+  // State variables to hold fetched data
+  Trainer? trainer;
+  List<Pokemon> pokemonList = [];
+  List<Task> tasks = [];
+
+  late final String trainerId;
+
 
 
   AnimationController? _controller;
@@ -88,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    trainerId = widget.trainerId;
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -97,21 +55,80 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _animation = CurvedAnimation(parent: _controller!, curve: Curves.easeOutBack);
     _controller?.forward();
 
-    //I think the code we need to retrieve pokemon, task, and trainer info needs to go here
-
-
+    fetchTrainerData();
+    fetchPokemonData();
+    fetchTaskData();
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
+  Future<void> fetchTrainerData() async {
+    final supabase = Supabase.instance.client;
+    try {
+      final response = await supabase
+          .from('trainer_table')
+          .select()
+          .eq('trainer_id', trainerId)
+          .limit(1)
+          .single();
+      if (response != null) {
+        if (!mounted) return;
+        setState(() {
+          trainer = Trainer.fromJson(response);
+        });
+      }
+      //debugPrint('✅ Trainer data: \\${response}');
+    } catch (e) {
+      debugPrint('❌ Failed to fetch trainer data: \\${e}');
+    }
+  }
+
+  Future<void> fetchPokemonData() async {
+    final supabase = Supabase.instance.client;
+    try {
+      final response = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('trainer_id', trainerId);
+      if (response != null) {
+        if (!mounted) return;
+        setState(() {
+          pokemonList = List<Pokemon>.from(
+            response.map((item) => Pokemon.fromJson(item)),
+          );
+        });
+      }
+      //debugPrint('✅ Pokemon data: \\${response}');
+    } catch (e) {
+      debugPrint('❌ Failed to fetch pokemon data: \\${e}');
+    }
+  }
+
+  Future<void> fetchTaskData() async {
+    final supabase = Supabase.instance.client;
+    try {
+      final response = await supabase
+          .from('task_table')
+          .select()
+          .eq('trainer_id', trainerId);
+      if (response != null) {
+        if (!mounted) return;
+        setState(() {
+          tasks = List<Task>.from(
+            response.map((item) => Task.fromJson(item)),
+          );
+        });
+      }
+      //debugPrint('✅ Task data: \\${response}');
+    } catch (e) {
+      debugPrint('❌ Failed to fetch task data: \\${e}');
+    }
   }
 
   Pokemon? get favoritedPokemon {
-    final favId = trainer.favoritePokemon;
+    if (trainer == null) return null;
+    final favId = trainer!.favoritePokemon;
     try {
-      return starterPokemonList.firstWhere((p) => p.pokemonId == favId && p.trainerId == trainer.trainerId);
+      // Only match pokemonId, not trainerId
+      return pokemonList.firstWhere((p) => p.pokemonId == favId);
     } catch (e) {
       return null;
     }
@@ -119,17 +136,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    // Filter tasksToday for only today's tasks
+    // Filter tasks for only today's tasks
     final today = DateTime.now();
-    final List<Task> onlyTodayTasks = tasksToday.where((task) =>
-      task.from.year == today.year &&
-      task.from.month == today.month &&
-      task.from.day == today.day
+    final List<Task> onlyTodayTasks = tasks.where((task) =>
+      task.startDate.year == today.year &&
+      task.startDate.month == today.month &&
+      task.startDate.day == today.day
     ).toList();
 
     final Pokemon? pokemon = favoritedPokemon ?? (() {
+      if (trainer == null) return null;
       try {
-        return starterPokemonList.firstWhere((p) => p.pokemonId == trainer.pokemonSlot1);
+        return pokemonList.firstWhere((p) => p.pokemonId == trainer!.pokemonSlot1);
       } catch (e) {
         return null;
       }
@@ -146,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         ),
         MyScaffold(
           selectedIndex: 2,
+          trainerId: trainerId,
           child: Center(
             child: Column(
               children: <Widget>[
@@ -159,11 +178,15 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                         offset: Offset(0, -20),
                         child: GestureDetector(
                           onTap: () async {
-                            await Navigator.push(
+                            final result = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => favPokemonPage()),
+                              MaterialPageRoute(builder: (context) => favPokemonPage(trainerId: trainerId)),
                             );
-                            setState(() {}); // Refresh after returning from fav page
+                            if (result == true) {
+                              await fetchTrainerData();
+                              await fetchPokemonData();
+                              setState(() {});
+                            }
                           },
                           child: ScaleTransition(
                             scale: _animation ?? AlwaysStoppedAnimation(1.0),
@@ -252,15 +275,30 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                         final task = onlyTodayTasks[index];
                                         return GestureDetector(
                                           onTap: () async {
-                                            await showDialog(
+                                            final result = await showDialog(
                                               context: context,
                                               builder: (context) => TaskDetailsCard(task: task),
                                             );
+                                            if (result == 'delete') {
+                                              // Optionally handle delete
+                                            }
+                                            await fetchTaskData();
+                                            setState(() {});
                                           },
                                           child: Container(
                                             height: 50,
                                             color: Colors.red[colorCodes[index % colorCodes.length]] ?? Colors.red[800],
-                                            child: Center(child: Text(task.eventName)),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(task.eventName),
+                                                if (task.isCompleted)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(left: 8.0),
+                                                    child: Icon(Icons.check_circle, color: Colors.green, size: 20),
+                                                  ),
+                                              ],
+                                            ),
                                           ),
                                         );
                                       },
@@ -286,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                trainer.trainerName,
+                trainer?.username ?? '',
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -295,7 +333,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 ),
               ),
               Text(
-                'Level: ${trainer.level}',
+                'Level: ${trainer?.level ?? ''}',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white70,

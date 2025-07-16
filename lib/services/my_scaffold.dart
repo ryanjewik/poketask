@@ -80,11 +80,13 @@ class PokedexClipper extends CustomClipper<Path> {
 class MyScaffold extends StatefulWidget implements PreferredSizeWidget{
   final int selectedIndex;
   final Widget child;
+  final String trainerId;
 
   const MyScaffold({
     super.key,
     required this.selectedIndex,
     required this.child,
+    required this.trainerId,
     this.height = 120
   });
 
@@ -324,13 +326,13 @@ class _MyScaffoldState extends State<MyScaffold>
     Widget page;
     switch (index) {
       case 0:
-        page = CalendarPage();
+        page = CalendarPage(trainerId: widget.trainerId);
         break;
       case 1:
-        page = TasksPage();
+        page = TasksPage(trainerId: widget.trainerId);
         break;
       case 2:
-        page = MyHomePage(title: 'Poketask');
+        page = MyHomePage(title: 'Poketask', trainerId: widget.trainerId);
         break;
       case 3:
         page = PokedexPage();
@@ -339,7 +341,7 @@ class _MyScaffoldState extends State<MyScaffold>
         page = BattlesPage();
         break;
       default:
-        page = MyHomePage(title: 'Poketask');
+        page = MyHomePage(title: 'Poketask', trainerId: widget.trainerId);
     }
     Navigator.pushReplacement(
       context,

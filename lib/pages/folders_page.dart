@@ -4,7 +4,8 @@ import '../models/task.dart';
 import '../services/task_details_card.dart';
 
 class FoldersPage extends StatefulWidget {
-  const FoldersPage({super.key});
+  final String trainerId;
+  const FoldersPage({super.key, required this.trainerId});
 
   @override
   State<FoldersPage> createState() => _FoldersPageState();
@@ -13,45 +14,79 @@ class FoldersPage extends StatefulWidget {
 class _FoldersPageState extends State<FoldersPage> {
   final List<Task> tasks = [
     Task(
-      eventName: 'Discuss project requirements',
-      from: DateTime.now().subtract(Duration(hours: 2)),
-      to: DateTime.now().subtract(Duration(hours: 1)),
-      notes: 'Go over the main features and deadlines.',
-      threadId: 1,
-      folderId: 1,
+      taskId: '1',
+      createdAt: DateTime.now().subtract(Duration(days: 1)),
+      startDate: DateTime.now().subtract(Duration(hours: 2)),
+      endDate: DateTime.now().subtract(Duration(hours: 1)),
+      dateCompleted: DateTime(2100),
+      isAllDay: false,
+      highPriority: false,
+      taskNotes: 'Go over the main features and deadlines.',
+      taskText: 'Discuss project requirements',
+      trainerId: '1',
+      threadId: '1',
+      folderId: '1',
+      isCompleted: false,
     ),
     Task(
-      eventName: 'Review code',
-      from: DateTime.now().add(Duration(hours: 2)),
-      to: DateTime.now().add(Duration(hours: 3)),
-      notes: 'Check the latest PRs and leave comments.',
-      threadId: 1,
-      isCompleted: true,
-      folderId: 2,
+      taskId: '2',
+      createdAt: DateTime.now(),
+      startDate: DateTime.now().add(Duration(hours: 2)),
+      endDate: DateTime.now().add(Duration(hours: 3)),
+      dateCompleted: DateTime(2100),
+      isAllDay: false,
+      highPriority: false,
+      taskNotes: 'Check the latest PRs and leave comments.',
+      taskText: 'Review code',
+      trainerId: '1',
+      threadId: '1',
+      folderId: '2',
+      isCompleted: false,
     ),
     Task(
-      eventName: 'Write documentation',
-      from: DateTime.now().add(Duration(hours: 4)),
-      to: DateTime.now().add(Duration(hours: 5)),
-      notes: 'Document the new API endpoints.',
-      threadId: 1,
-      folderId: 2,
+      taskId: '3',
+      createdAt: DateTime.now(),
+      startDate: DateTime.now().add(Duration(hours: 4)),
+      endDate: DateTime.now().add(Duration(hours: 5)),
+      dateCompleted: DateTime(2100),
+      isAllDay: false,
+      highPriority: false,
+      taskNotes: 'Document the new API endpoints.',
+      taskText: 'Write documentation',
+      trainerId: '1',
+      threadId: '1',
+      folderId: '2',
+      isCompleted: false,
     ),
     Task(
-      eventName: 'Team meeting',
-      from: DateTime.now().add(Duration(hours: 6)),
-      to: DateTime.now().add(Duration(hours: 7)),
-      notes: 'Weekly sync with the whole team.',
-      threadId: 2,
-      folderId: 3,
+      taskId: '4',
+      createdAt: DateTime.now(),
+      startDate: DateTime.now().add(Duration(hours: 6)),
+      endDate: DateTime.now().add(Duration(hours: 7)),
+      dateCompleted: DateTime(2100),
+      isAllDay: false,
       highPriority: true,
+      taskNotes: 'Weekly sync with the whole team.',
+      taskText: 'Team meeting',
+      trainerId: '1',
+      threadId: '2',
+      folderId: '3',
+      isCompleted: false,
     ),
     Task(
-      eventName: 'design battle system',
-      from: DateTime.now().subtract(Duration(hours: 2)),
-      to: DateTime.now().subtract(Duration(hours: 1)),
-      notes: 'how will the min max AI work',
-      threadId: 1,
+      taskId: '5',
+      createdAt: DateTime.now().subtract(Duration(days: 1)),
+      startDate: DateTime.now().subtract(Duration(hours: 2)),
+      endDate: DateTime.now().subtract(Duration(hours: 1)),
+      dateCompleted: DateTime(2100),
+      isAllDay: false,
+      highPriority: false,
+      taskNotes: 'how will the min max AI work',
+      taskText: 'design battle system',
+      trainerId: '1',
+      threadId: '1',
+      folderId: '1',
+      isCompleted: false,
     ),
   ];
 
@@ -188,8 +223,8 @@ class _FoldersPageState extends State<FoldersPage> {
                                   onDismissed: (direction) {
                                     setState(() {
                                       for (final t in tasks) {
-                                        if (t.folderId == folder['id']) {
-                                          t.folderId = 0;
+                                        if (t.folderId == folder['id'].toString()) {
+                                          t.folderId = '0';
                                         }
                                       }
                                       folders.removeWhere((f) => f['id'] == folder['id']);
@@ -286,8 +321,8 @@ class _FoldersPageState extends State<FoldersPage> {
                                               if (confirm == true) {
                                                 setState(() {
                                                   for (final t in tasks) {
-                                                    if (t.folderId == folder['id']) {
-                                                      t.folderId = 0;
+                                                    if (t.folderId == folder['id'].toString()) {
+                                                      t.folderId = '0';
                                                     }
                                                   }
                                                   folders.removeWhere((f) => f['id'] == folder['id']);
@@ -326,12 +361,12 @@ class _FoldersPageState extends State<FoldersPage> {
                       child: ListView.builder(
                         key: ValueKey(expandedFolderId),
                         padding: EdgeInsets.all(10),
-                        itemCount: tasks.where((task) => task.folderId == expandedFolderId).length,
+                        itemCount: tasks.where((task) => task.folderId == expandedFolderId?.toString()).length,
                         itemBuilder: (context, idx) {
-                          final visibleTasks = tasks.where((task) => task.folderId == expandedFolderId).toList();
+                          final visibleTasks = tasks.where((task) => task.folderId == expandedFolderId?.toString()).toList();
                           final task = visibleTasks[idx];
                           return TweenAnimationBuilder<Offset>(
-                            tween: Tween(
+                            tween: Tween<Offset>(
                               begin: Offset(0, 0.3 + 0.1 * (visibleTasks.length - idx)),
                               end: Offset.zero,
                             ),
@@ -344,7 +379,6 @@ class _FoldersPageState extends State<FoldersPage> {
                               );
                             },
                             child: Card(
-                              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
@@ -399,14 +433,9 @@ class _FoldersPageState extends State<FoldersPage> {
                                         setState(() {});
                                       },
                                       child: ListTile(
-                                        leading: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              task.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                              color: task.isCompleted ? Colors.green : Colors.grey,
-                                            ),
-                                          ],
+                                        leading: Icon(
+                                          task.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                                          color: task.isCompleted ? Colors.green : Colors.grey,
                                         ),
                                         title: Text(
                                           task.eventName.replaceAll(' ', '\n'),

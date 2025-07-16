@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/task.dart';
 
 class TaskDetailsCard extends StatefulWidget {
@@ -18,7 +19,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
   void initState() {
     super.initState();
     isCompleted = widget.task.isCompleted;
-    notes = widget.task.notes;
+    notes = widget.task.taskNotes;
     _notesController.text = notes;
   }
 
@@ -26,6 +27,32 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
   void dispose() {
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> updateTaskCompleted(bool completed) async {
+    final supabase = Supabase.instance.client;
+    final now = DateTime.now();
+    await supabase
+        .from('task_table')
+        .update({
+          'is_completed': completed,
+          'date_completed': completed ? now.toIso8601String() : null,
+        })
+        .eq('task_id', widget.task.taskId);
+    setState(() {
+      isCompleted = completed;
+      widget.task.isCompleted = completed;
+      widget.task.dateCompleted = completed ? now : DateTime(2100);
+    });
+    // Do not close the dialog here
+  }
+
+  Future<void> updateTaskNotes(String notes) async {
+    final supabase = Supabase.instance.client;
+    await supabase
+        .from('task_table')
+        .update({'task_notes': notes})
+        .eq('task_id', widget.task.taskId);
   }
 
   @override
@@ -55,7 +82,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
                 ],
               ),
             ),
-          if (widget.task.to.isBefore(DateTime.now()))
+          if (widget.task.endDate.isBefore(DateTime.now()))
             Container(
               color: Colors.orange[800],
               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -79,18 +106,15 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             child: Row(
               children: [
-                Expanded(child: Text(widget.task.eventName)),
+                Expanded(child: Text(widget.task.taskText)),
                 IconButton(
                   icon: Icon(
                     isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   tooltip: isCompleted ? 'Completed' : 'Mark as complete',
-                  onPressed: () {
-                    setState(() {
-                      isCompleted = !isCompleted;
-                      widget.task.isCompleted = isCompleted;
-                    });
+                  onPressed: () async {
+                    await updateTaskCompleted(!isCompleted);
                   },
                 ),
               ],
@@ -113,36 +137,40 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
                 suffixIcon: IconButton(
                   icon: Icon(Icons.save),
                   tooltip: 'Save Notes',
-                  onPressed: () {
+                  onPressed: () async {
                     setState(() {
                       notes = _notesController.text;
-                      widget.task.notes = notes;
+                      widget.task.taskNotes = notes;
                     });
+                    await updateTaskNotes(notes);
                   },
                 ),
               ),
             ),
             SizedBox(height: 8),
-            Text('From: '
-                '${widget.task.from.year}-${widget.task.from.month.toString().padLeft(2, '0')}-${widget.task.from.day.toString().padLeft(2, '0')} '
-                '${widget.task.from.hour.toString().padLeft(2, '0')}:${widget.task.from.minute.toString().padLeft(2, '0')}'),
-            Text('To: '
-                '${widget.task.to.year}-${widget.task.to.month.toString().padLeft(2, '0')}-${widget.task.to.day.toString().padLeft(2, '0')} '
-                '${widget.task.to.hour.toString().padLeft(2, '0')}:${widget.task.to.minute.toString().padLeft(2, '0')}'),
+            Text('Start: '
+                '${widget.task.startDate.year}-${widget.task.startDate.month.toString().padLeft(2, '0')}-${widget.task.startDate.day.toString().padLeft(2, '0')} '
+                '${widget.task.startDate.hour.toString().padLeft(2, '0')}:${widget.task.startDate.minute.toString().padLeft(2, '0')}'),
+            Text('End: '
+                '${widget.task.endDate.year}-${widget.task.endDate.month.toString().padLeft(2, '0')}-${widget.task.endDate.day.toString().padLeft(2, '0')} '
+                '${widget.task.endDate.hour.toString().padLeft(2, '0')}:${widget.task.endDate.minute.toString().padLeft(2, '0')}'),
             SizedBox(height: 8),
-            Text('Thread ID: ${widget.task.threadId}'),
-            Text('Folder ID: ${widget.task.folderId}'),
             Text('Completed: ${isCompleted ? "Yes" : "No"}'),
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pop(isCompleted),
           child: Text('Close'),
         ),
         TextButton(
-          onPressed: () {
+          onPressed: () async {
+            final supabase = Supabase.instance.client;
+            await supabase
+                .from('task_table')
+                .delete()
+                .eq('task_id', widget.task.taskId);
             Navigator.of(context).pop('delete');
           },
           child: Text('Delete', style: TextStyle(color: Colors.red)),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PokebattlePage extends StatelessWidget {
-  const PokebattlePage({super.key});
+  final String trainerId;
+  const PokebattlePage({super.key, required this.trainerId});
 
   @override
   Widget build(BuildContext context) {
@@ -19,4 +20,3 @@ class PokebattlePage extends StatelessWidget {
     );
   }
 }
-
