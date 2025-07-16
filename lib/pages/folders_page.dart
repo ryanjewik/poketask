@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/task.dart';
 import '../services/task_details_card.dart';
+import '../services/task_form.dart';
 
 class FoldersPage extends StatefulWidget {
   final String trainerId;
@@ -13,90 +17,62 @@ class FoldersPage extends StatefulWidget {
 
 class _FoldersPageState extends State<FoldersPage> {
   final List<Task> tasks = [
-    Task(
-      taskId: '1',
-      createdAt: DateTime.now().subtract(Duration(days: 1)),
-      startDate: DateTime.now().subtract(Duration(hours: 2)),
-      endDate: DateTime.now().subtract(Duration(hours: 1)),
-      dateCompleted: DateTime(2100),
-      isAllDay: false,
-      highPriority: false,
-      taskNotes: 'Go over the main features and deadlines.',
-      taskText: 'Discuss project requirements',
-      trainerId: '1',
-      threadId: '1',
-      folderId: '1',
-      isCompleted: false,
-    ),
-    Task(
-      taskId: '2',
-      createdAt: DateTime.now(),
-      startDate: DateTime.now().add(Duration(hours: 2)),
-      endDate: DateTime.now().add(Duration(hours: 3)),
-      dateCompleted: DateTime(2100),
-      isAllDay: false,
-      highPriority: false,
-      taskNotes: 'Check the latest PRs and leave comments.',
-      taskText: 'Review code',
-      trainerId: '1',
-      threadId: '1',
-      folderId: '2',
-      isCompleted: false,
-    ),
-    Task(
-      taskId: '3',
-      createdAt: DateTime.now(),
-      startDate: DateTime.now().add(Duration(hours: 4)),
-      endDate: DateTime.now().add(Duration(hours: 5)),
-      dateCompleted: DateTime(2100),
-      isAllDay: false,
-      highPriority: false,
-      taskNotes: 'Document the new API endpoints.',
-      taskText: 'Write documentation',
-      trainerId: '1',
-      threadId: '1',
-      folderId: '2',
-      isCompleted: false,
-    ),
-    Task(
-      taskId: '4',
-      createdAt: DateTime.now(),
-      startDate: DateTime.now().add(Duration(hours: 6)),
-      endDate: DateTime.now().add(Duration(hours: 7)),
-      dateCompleted: DateTime(2100),
-      isAllDay: false,
-      highPriority: true,
-      taskNotes: 'Weekly sync with the whole team.',
-      taskText: 'Team meeting',
-      trainerId: '1',
-      threadId: '2',
-      folderId: '3',
-      isCompleted: false,
-    ),
-    Task(
-      taskId: '5',
-      createdAt: DateTime.now().subtract(Duration(days: 1)),
-      startDate: DateTime.now().subtract(Duration(hours: 2)),
-      endDate: DateTime.now().subtract(Duration(hours: 1)),
-      dateCompleted: DateTime(2100),
-      isAllDay: false,
-      highPriority: false,
-      taskNotes: 'how will the min max AI work',
-      taskText: 'design battle system',
-      trainerId: '1',
-      threadId: '1',
-      folderId: '1',
-      isCompleted: false,
-    ),
+
   ];
 
-  final List<Map<String, dynamic>> folders = [
-    {'id': 0, 'name': 'No Folder'},
-    {'id': 1, 'name': 'Design'},
-    {'id': 2, 'name': 'Development'},
-    {'id': 3, 'name': 'Meetings'},
-  ];
-  int? expandedFolderId;
+  List<Map<String, dynamic>> folders = [];
+  String? expandedFolderId;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFolders();
+  }
+
+  Future<void> fetchFolders() async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('folder_table')
+        .select()
+        .eq('trainer_id', widget.trainerId);
+    setState(() {
+      folders = [
+        {'folder_id': '0', 'folder_name': 'No Folder'},
+        ...List<Map<String, dynamic>>.from(response)
+      ];
+    });
+  }
+
+  void onFolderSelected(String? folderId) async {
+    setState(() {
+      expandedFolderId = folderId;
+      tasks.clear();
+    });
+    final supabase = Supabase.instance.client;
+    List response;
+    if (folderId == null || folderId == '0') {
+      response = await supabase
+          .from('task_table')
+          .select()
+          .eq('trainer_id', widget.trainerId);
+      print('Fetched tasks for trainer_id: \\${widget.trainerId} => \\${response.length} tasks');
+      // Filter for tasks with folder_id == null
+      response = response.where((t) => t['folder_id'] == null).toList();
+      print('Filtered tasks with folder_id == null: \\${response.length} tasks');
+    } else {
+      response = await supabase
+          .from('task_table')
+          .select()
+          .eq('trainer_id', widget.trainerId)
+          .eq('folder_id', folderId);
+    }
+    setState(() {
+      tasks.clear();
+      for (final t in response) {
+        tasks.add(Task.fromJson(t));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,36 +109,108 @@ class _FoldersPageState extends State<FoldersPage> {
                     ),
                     onPressed: () async {
                       final controller = TextEditingController();
-                      final result = await showDialog<String>(
+                      Color selectedColor = Colors.blue; // Default color
+                      final result = await showDialog<Map<String, dynamic>>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('New Folder'),
-                          content: TextField(
-                            controller: controller,
-                            autofocus: true,
-                            decoration: InputDecoration(hintText: 'Folder name'),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('Cancel'),
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) => AlertDialog(
+                              title: Text('New Folder'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    controller: controller,
+                                    autofocus: true,
+                                    decoration: InputDecoration(hintText: 'Folder name'),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Text('Color:'),
+                                      SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: () async {
+                                          Color? picked = await showDialog<Color>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text('Pick a color'),
+                                              content: SingleChildScrollView(
+                                                child: BlockPicker(
+                                                  pickerColor: selectedColor,
+                                                  onColorChanged: (color) {
+                                                    Navigator.of(context).pop(color);
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                          if (picked != null) {
+                                            setState(() => selectedColor = picked);
+                                          }
+                                        },
+                                        child: Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            color: selectedColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.black26),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (controller.text.trim().isNotEmpty) {
+                                      Navigator.of(context).pop({
+                                        'folder_name': controller.text.trim(),
+                                        'color': selectedColor.value,
+                                      });
+                                    }
+                                  },
+                                  child: Text('Add'),
+                                ),
+                              ],
                             ),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (controller.text.trim().isNotEmpty) {
-                                  Navigator.of(context).pop(controller.text.trim());
-                                }
-                              },
-                              child: Text('Add'),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       );
-                      if (result != null && result.isNotEmpty) {
-                        setState(() {
-                          final newId = (folders.isNotEmpty ? folders.map((f) => f['id'] as int).reduce((a, b) => a > b ? a : b) : 0) + 1;
-                          folders.add({'id': newId, 'name': result});
+                      if (result != null && result['folder_name'].isNotEmpty) {
+                        final uuid = Uuid();
+                        final folderId = uuid.v4();
+                        final folderName = result['folder_name'];
+                        final colorValue = result['color'];
+                        final trainerId = widget.trainerId;
+                        // Convert color int to hex string with #
+                        final colorHex = '#'
+                            + colorValue.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
+                        // Insert into database
+                        final supabase = Supabase.instance.client;
+                        await supabase.from('folder_table').insert({
+                          'folder_id': folderId,
+                          'folder_name': folderName,
+                          'trainer_id': trainerId,
+                          'color': colorHex,
                         });
+                        // Add to local list
+                        setState(() {
+                          folders.add({
+                            'folder_id': folderId,
+                            'folder_name': folderName,
+                            'trainer_id': trainerId,
+                            'color': colorHex,
+                          });
+                        });
+
                       }
                     },
                   ),
@@ -172,8 +220,9 @@ class _FoldersPageState extends State<FoldersPage> {
                     builder: (context, constraints) {
                       return ListView(
                         children: folders.map((folder) {
-                          final isExpanded = expandedFolderId == folder['id'];
-                          String folderName = folder['name'];
+                          final folderId = (folder['folder_id'] ?? '0').toString();
+                          final isExpanded = expandedFolderId == folderId;
+                          String folderName = (folder['folder_name'] ?? 'Unnamed Folder').toString();
                           double fontSize = 15;
                           final textPainter = TextPainter(
                             text: TextSpan(text: folderName, style: TextStyle(fontSize: fontSize)),
@@ -190,15 +239,15 @@ class _FoldersPageState extends State<FoldersPage> {
                             children: [
                               Expanded(
                                 child: Dismissible(
-                                  key: ValueKey(folder['id']),
-                                  direction: folder['id'] != 0 ? DismissDirection.endToStart : DismissDirection.none,
+                                  key: ValueKey(folderId),
+                                  direction: folderId != '0' ? DismissDirection.endToStart : DismissDirection.none,
                                   background: Container(
                                     color: Colors.redAccent,
                                     alignment: Alignment.centerRight,
                                     padding: EdgeInsets.symmetric(horizontal: 20),
                                     child: Icon(Icons.delete, color: Colors.white),
                                   ),
-                                  confirmDismiss: folder['id'] != 0
+                                  confirmDismiss: folderId != '0'
                                       ? (direction) async {
                                           return await showDialog<bool>(
                                             context: context,
@@ -223,16 +272,23 @@ class _FoldersPageState extends State<FoldersPage> {
                                   onDismissed: (direction) {
                                     setState(() {
                                       for (final t in tasks) {
-                                        if (t.folderId == folder['id'].toString()) {
+                                        if (t.folderId == folderId) {
                                           t.folderId = '0';
                                         }
                                       }
-                                      folders.removeWhere((f) => f['id'] == folder['id']);
-                                      if (expandedFolderId == folder['id']) expandedFolderId = null;
+                                      folders.removeWhere((f) => f['folder_id'] == folder['folder_id']);
+                                      if (expandedFolderId == folderId) expandedFolderId = null;
                                     });
                                   },
                                   child: ListTile(
-                                    leading: Icon(Icons.folder, color: folder['id'] == 0 ? Colors.grey : Colors.redAccent),
+                                    leading: Icon(
+                                      Icons.folder,
+                                      color: folderId == '0'
+                                          ? Colors.grey
+                                          : (folder['color'] != null && folder['color'] is String && (folder['color'] as String).startsWith('#')
+                                              ? Color(int.parse((folder['color'] as String).replaceFirst('#', '0xff')))
+                                              : Colors.redAccent),
+                                    ),
                                     title: Text(
                                       folderName,
                                       style: TextStyle(fontSize: fontSize),
@@ -241,9 +297,7 @@ class _FoldersPageState extends State<FoldersPage> {
                                     ),
                                     selected: isExpanded,
                                     onTap: () {
-                                      setState(() {
-                                        expandedFolderId = isExpanded ? null : folder['id'];
-                                      });
+                                      onFolderSelected(isExpanded ? null : folderId);
                                     },
                                     onLongPress: folder['id'] != 0
                                         ? () async {
@@ -333,7 +387,7 @@ class _FoldersPageState extends State<FoldersPage> {
                                           }
                                         : null,
                                     trailing: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 0), // Reduced horizontal padding
                                     minVerticalPadding: 0,
                                     dense: true,
                                   ),
@@ -361,9 +415,13 @@ class _FoldersPageState extends State<FoldersPage> {
                       child: ListView.builder(
                         key: ValueKey(expandedFolderId),
                         padding: EdgeInsets.all(10),
-                        itemCount: tasks.where((task) => task.folderId == expandedFolderId?.toString()).length,
+                        itemCount: expandedFolderId == '0'
+                            ? tasks.where((task) => task.folderId == null).length
+                            : tasks.where((task) => task.folderId == expandedFolderId?.toString()).length,
                         itemBuilder: (context, idx) {
-                          final visibleTasks = tasks.where((task) => task.folderId == expandedFolderId?.toString()).toList();
+                          final visibleTasks = expandedFolderId == '0'
+                              ? tasks.where((task) => task.folderId == null).toList()
+                              : tasks.where((task) => task.folderId == expandedFolderId?.toString()).toList();
                           final task = visibleTasks[idx];
                           return TweenAnimationBuilder<Offset>(
                             tween: Tween<Offset>(
@@ -464,6 +522,25 @@ class _FoldersPageState extends State<FoldersPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TaskForm(
+                trainerId: widget.trainerId,
+                onSubmit: (task) {
+                  // Optionally refresh tasks or folders after adding
+                  onFolderSelected(expandedFolderId);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+          );
+        },
+        icon: Icon(Icons.add_task),
+        label: Text('Add Task'),
+        backgroundColor: Colors.redAccent,
       ),
     );
   }

@@ -98,6 +98,12 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "flutter_colorpicker",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_colorpicker-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "flutter_dotenv",
       "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_dotenv-5.2.1",
       "packageUri": "lib/",

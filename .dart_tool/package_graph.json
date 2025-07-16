@@ -9,6 +9,7 @@
       "dependencies": [
         "cupertino_icons",
         "flutter",
+        "flutter_colorpicker",
         "flutter_dotenv",
         "supabase_flutter",
         "syncfusion_flutter_calendar",
@@ -807,6 +808,13 @@
       "version": "1.0.1",
       "dependencies": [
         "web"
+      ]
+    },
+    {
+      "name": "flutter_colorpicker",
+      "version": "1.1.0",
+      "dependencies": [
+        "flutter"
       ]
     }
   ],

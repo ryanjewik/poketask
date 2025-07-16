@@ -29,7 +29,7 @@ class Task {
   String taskText;
   String trainerId;
   String threadId;
-  String folderId;
+  String? folderId; // Changed to String? to allow null values
   bool isCompleted;
   String? color; // Hex color string from folder, nullable
 
@@ -46,7 +46,7 @@ class Task {
       taskText: json['task_text'] ?? '',
       trainerId: json['trainer_id']?.toString() ?? '',
       threadId: json['thread_id']?.toString() ?? '',
-      folderId: json['folder_id']?.toString() ?? '',
+      folderId: json['folder_id'] == null ? null : json['folder_id'].toString(),
       isCompleted: json['is_completed'] ?? false,
     );
   }
