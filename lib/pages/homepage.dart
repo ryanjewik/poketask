@@ -75,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           trainer = Trainer.fromJson(response);
         });
       }
-      //debugPrint('✅ Trainer data: \\${response}');
+
     } catch (e) {
       debugPrint('❌ Failed to fetch trainer data: \\${e}');
     }

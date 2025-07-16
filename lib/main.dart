@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:poketask/pages/battles_page.dart';
 import 'package:poketask/pages/calendar.dart';
 import 'package:poketask/pages/pokedex.dart';
 import 'package:poketask/pages/taskspage.dart';
@@ -61,8 +62,9 @@ class MyApp extends StatelessWidget {
         'tasks': (context) => TasksPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         '/threads': (context) => ThreadsPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         '/folders': (context) => FoldersPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        'pokebattle': (context) => PokebattlePage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
+        '/pokebattle': (context) => PokebattlePage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         'pokedex': (context) => PokedexPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
+        'battles': (context) => BattlesPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
 
       }
     );

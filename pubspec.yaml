@@ -90,6 +90,11 @@ flutter:
     - assets/sprites/nidoking.png
     - assets/sprites/wartortle.png
     - assets/sprites/bulbasaur2.png
+    - assets/sprites/graveler.png
+    - assets/sprites/golem.png
+    - assets/sprites/rhyhorn.png
+    - assets/sprites/machop.png
+    - assets/sprites/sandslash.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg

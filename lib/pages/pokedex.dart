@@ -48,7 +48,7 @@ class _PokedexPageState extends State<PokedexPage> {
       if (poke.ability3.trim().isNotEmpty && poke.ability3.trim() != 'null') abilityIds.add(poke.ability3.trim());
       if (poke.ability4.trim().isNotEmpty && poke.ability4.trim() != 'null') abilityIds.add(poke.ability4.trim());
     }
-    debugPrint('Ability IDs to fetch: ' + abilityIds.join(', '));
+
     // Fetch ability names from abilities_table
     Map<String, String> abilityMap = {};
     if (abilityIds.isNotEmpty) {
@@ -56,7 +56,6 @@ class _PokedexPageState extends State<PokedexPage> {
           .from('abilities_table')
           .select('ability_id, ability_name')
           .inFilter('ability_id', abilityIds.toList());
-      debugPrint('Abilities response: ' + abilitiesResponse.toString());
       for (final ab in abilitiesResponse as List) {
         abilityMap[ab['ability_id']] = ab['ability_name'] ?? ab['ability_id'];
       }
@@ -79,9 +78,6 @@ class _PokedexPageState extends State<PokedexPage> {
       return const Center(child: Text('No Pokémon found.'));
     }
     final Pokemon displayPokemon = selectedPokemon ?? pokemonList[0];
-    debugPrint('Selected ability3: "' + displayPokemon.ability3 + '"');
-    debugPrint('Selected ability4: "' + displayPokemon.ability4 + '"');
-    debugPrint('Ability names map: ' + abilityNames.toString());
     return Container(
       color: Colors.white,
       child: Stack(
@@ -101,7 +97,7 @@ class _PokedexPageState extends State<PokedexPage> {
               child: Column(
                 children: [
                   Expanded(
-                    flex: 2,
+                    flex: 2, // Less space for image/stats
                     child: Row(
                       children: [
                         Expanded(//pokemon
@@ -174,7 +170,7 @@ class _PokedexPageState extends State<PokedexPage> {
                   ),
                   // Grid of Pokémon at the bottom
                   Expanded(
-                    flex: 1,
+                    flex: 3, // More space for grid
                     child: GridView.builder(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 4,

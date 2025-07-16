@@ -39,6 +39,29 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
           'date_completed': completed ? now.toIso8601String() : null,
         })
         .eq('task_id', widget.task.taskId);
+
+    // Update completed_tasks for the trainer
+    final trainerId = widget.task.trainerId;
+    if (trainerId != null && trainerId.isNotEmpty) {
+      // Get current completed_tasks value
+      final trainerResponse = await supabase
+        .from('trainer_table')
+        .select('completed_tasks')
+        .eq('trainer_id', trainerId)
+        .maybeSingle();
+      int completedTasks = (trainerResponse != null && trainerResponse['completed_tasks'] != null)
+        ? trainerResponse['completed_tasks'] as int
+        : 0;
+      // Increment or decrement
+      final newCompletedTasks = completed
+        ? completedTasks + 1
+        : (completedTasks > 0 ? completedTasks - 1 : 0);
+      await supabase
+        .from('trainer_table')
+        .update({'completed_tasks': newCompletedTasks})
+        .eq('trainer_id', trainerId);
+    }
+
     setState(() {
       isCompleted = completed;
       widget.task.isCompleted = completed;
