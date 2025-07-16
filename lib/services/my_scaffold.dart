@@ -335,7 +335,7 @@ class _MyScaffoldState extends State<MyScaffold>
         page = MyHomePage(title: 'Poketask', trainerId: widget.trainerId);
         break;
       case 3:
-        page = PokedexPage();
+        page = PokedexPage(trainerId: widget.trainerId);
         break;
       case 4:
         page = BattlesPage();

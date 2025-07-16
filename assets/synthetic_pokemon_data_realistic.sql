@@ -46,6 +46,52 @@
     INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
     VALUES ('8aca389f-4a70-4287-a318-6c42ee5dbca5', 'Psychic', 'Psychic', 10, 100, 90);
 
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('5860c1eb-5c38-46f5-a6a0-174fc9caedf8', 'Rock Throw', 'Rock', 15, 90, 50);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('43fe0f77-06aa-491b-a03f-a1a9ed7b47d2', 'Thunder Wave', 'Electric', 20, 90, 0);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('f8dcf60b-604b-4ca9-9e16-c44d79996497', 'Sleep Powder', 'Grass', 15, 75, 0);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('ac5ca494-93de-4f3b-91b1-6627d4375105', 'Bubble Beam', 'Water', 20, 100, 65);
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c', 'Solar Beam', 'Grass', 10, 100, 120);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d', 'Fire Blast', 'Fire', 5, 85, 110);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('9b0c1d2e-3f4a-5b6c-7d8e-9f0a1b2c3d4e', 'Blizzard', 'Ice', 5, 70, 110);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f', 'Thunder', 'Electric', 10, 70, 110);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a', 'Rock Slide', 'Rock', 10, 90, 75);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('2e3f4a5b-6c7d-8e9f-0a1b-2c3d4e5f6a7b', 'Poison Sting', 'Poison', 35, 100, 15);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('3f4a5b6c-7d8e-9f0a-1b2c-3d4e5f6a7b8c', 'Confusion', 'Psychic', 25, 100, 50);
+    
+
+    INSERT INTO abilities_table (ability_id, ability_name, type, uses, hitrate, value)
+    VALUES ('4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d', 'Wing Attack', 'Flying', 35, 100, 60);
+
     
     INSERT INTO user_authentication_table (trainer_id, created_at, username, password, email)
     VALUES ('b0fedc38-990f-4ff1-befb-11fca4357462', now(), 'ash_ketchum', 'password123', 'ash_ketchum@example.com');
@@ -270,84 +316,84 @@
         VALUES ('c8e9f0a1-b2c3-4d5e-6f7a-012345678901', now(), '2025-07-17 10:45:00', '2025-07-17 08:30:00', null, false, false, 'Organize Pokemon medicine supplies.', 'Sort and inventory healing items', 'e9c30ce7-f62e-464d-ba22-39b936172b57', null, 'a3bbcf94-2777-40d2-bb72-58da1716e7f6');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('158ff09f-4733-491c-bcb8-1a788420c2b8', now(), 'Bulbasaur', 'Fang', 'Bulbasaur', 3, 91, 'b0fedc38-990f-4ff1-befb-11fca4357462', 16, 38, 'debaf730-cb24-4a75-861d-b144a426968f', 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('158ff09f-4733-491c-bcb8-1a788420c2b8', now(), 'Bulbasaur', 'Fang', 'Bulbasaur', 3, 91, 'b0fedc38-990f-4ff1-befb-11fca4357462', 16, 38, 'debaf730-cb24-4a75-861d-b144a426968f', 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c', 'f8dcf60b-604b-4ca9-9e16-c44d79996497');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('f2026ce7-c232-45c4-a92c-f53fac610809', now(), 'Charmander', 'Leafy', 'Charmander', 4, 69, 'b0fedc38-990f-4ff1-befb-11fca4357462', 19, 89, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('f2026ce7-c232-45c4-a92c-f53fac610809', now(), 'Charmander', 'Leafy', 'Charmander', 4, 69, 'b0fedc38-990f-4ff1-befb-11fca4357462', 19, 89, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520', '8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('cbb2aeec-d5a6-478c-8660-707ba1de0533', now(), 'Bulbasaur', 'Drip', 'Bulbasaur', 2, 111, '6dfb5c6c-8008-4df1-8642-c284e0007a3a', 15, 27, '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', 'af429222-27d5-4771-abae-46d76f234ab4');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('cbb2aeec-d5a6-478c-8660-707ba1de0533', now(), 'Bulbasaur', 'Drip', 'Bulbasaur', 2, 111, '6dfb5c6c-8008-4df1-8642-c284e0007a3a', 15, 27, '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', 'af429222-27d5-4771-abae-46d76f234ab4', 'c880e241-5296-4286-885c-d59819248be3', '7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('6dbd4009-6d09-4dbd-9cf7-144491b75482', now(), 'Squirtle', 'Fang', 'Squirtle', 3, 189, '6dfb5c6c-8008-4df1-8642-c284e0007a3a', 28, 99, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'c880e241-5296-4286-885c-d59819248be3');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('6dbd4009-6d09-4dbd-9cf7-144491b75482', now(), 'Squirtle', 'Fang', 'Squirtle', 3, 189, '6dfb5c6c-8008-4df1-8642-c284e0007a3a', 28, 99, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'c880e241-5296-4286-885c-d59819248be3', 'ac5ca494-93de-4f3b-91b1-6627d4375105', 'b4dcff93-d520-4822-9338-fb15616e5b90');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('3e4c8fd4-7be5-4135-97c8-83d3c5b9ebcf', now(), 'Bulbasaur', 'Bolt', 'Bulbasaur', 4, 100, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 26, 32, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('3e4c8fd4-7be5-4135-97c8-83d3c5b9ebcf', now(), 'Bulbasaur', 'Bolt', 'Bulbasaur', 4, 100, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 26, 32, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2', '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520', '43fe0f77-06aa-491b-a03f-a1a9ed7b47d2');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('f568ec71-ef27-4f26-a9a4-c18ba1805f2f', now(), 'Charmander', 'Fang', 'Charmander', 3, 91, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 19, 85, '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520', 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('f568ec71-ef27-4f26-a9a4-c18ba1805f2f', now(), 'Charmander', 'Fang', 'Charmander', 3, 91, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 19, 85, '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520', 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '09dfc037-616a-4274-8a9a-e26f03229738', '8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('edd7c4b0-2215-41b2-b729-b0109281093a', now(), 'Squirtle', 'Shellshock', 'Squirtle', 5, 79, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 10, 63, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', '8aca389f-4a70-4287-a318-6c42ee5dbca5');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('edd7c4b0-2215-41b2-b729-b0109281093a', now(), 'Squirtle', 'Shellshock', 'Squirtle', 5, 79, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 10, 63, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', '8aca389f-4a70-4287-a318-6c42ee5dbca5', 'debaf730-cb24-4a75-861d-b144a426968f', '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('aabf5d8b-3586-450d-b0eb-5f008cdfb92f', now(), 'Squirtle', 'Blaze', 'Squirtle', 1, 99, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 20, 72, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', 'af429222-27d5-4771-abae-46d76f234ab4');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('aabf5d8b-3586-450d-b0eb-5f008cdfb92f', now(), 'Squirtle', 'Blaze', 'Squirtle', 1, 99, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 20, 72, 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', 'af429222-27d5-4771-abae-46d76f234ab4', 'ac5ca494-93de-4f3b-91b1-6627d4375105', 'b4dcff93-d520-4822-9338-fb15616e5b90');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('7468d04d-def6-4867-b981-acb29312644b', now(), 'Squirtle', 'Shellshock', 'Squirtle', 4, 51, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 23, 67, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '8aca389f-4a70-4287-a318-6c42ee5dbca5');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('7468d04d-def6-4867-b981-acb29312644b', now(), 'Squirtle', 'Shellshock', 'Squirtle', 4, 51, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 23, 67, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '8aca389f-4a70-4287-a318-6c42ee5dbca5', '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', '9b0c1d2e-3f4a-5b6c-7d8e-9f0a1b2c3d4e');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('92ac6202-f5fc-45bd-88d6-53d4b5e9e757', now(), 'Squirtle', 'Leafy', 'Squirtle', 4, 137, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 24, 29, '09dfc037-616a-4274-8a9a-e26f03229738', '8aca389f-4a70-4287-a318-6c42ee5dbca5');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('92ac6202-f5fc-45bd-88d6-53d4b5e9e757', now(), 'Squirtle', 'Leafy', 'Squirtle', 4, 137, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 24, 29, '09dfc037-616a-4274-8a9a-e26f03229738', '8aca389f-4a70-4287-a318-6c42ee5dbca5', 'debaf730-cb24-4a75-861d-b144a426968f', '3f4a5b6c-7d8e-9f0a-1b2c-3d4e5f6a7b8c');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('36ff591b-e9a3-4478-8bed-dcd00a41d65e', now(), 'Squirtle', 'Shellshock', 'Squirtle', 4, 69, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 19, 33, '8aca389f-4a70-4287-a318-6c42ee5dbca5', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('36ff591b-e9a3-4478-8bed-dcd00a41d65e', now(), 'Squirtle', 'Shellshock', 'Squirtle', 4, 69, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 19, 33, '8aca389f-4a70-4287-a318-6c42ee5dbca5', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2', 'ac5ca494-93de-4f3b-91b1-6627d4375105', '0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('ba60ece1-94bd-47a2-a79e-e0ef92dc9897', now(), 'Bulbasaur', 'Buddy', 'Bulbasaur', 4, 68, '05ceec13-64d5-4345-8df9-84ca4b135a79', 10, 31, '09dfc037-616a-4274-8a9a-e26f03229738', '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('ba60ece1-94bd-47a2-a79e-e0ef92dc9897', now(), 'Bulbasaur', 'Buddy', 'Bulbasaur', 4, 68, '05ceec13-64d5-4345-8df9-84ca4b135a79', 10, 31, '09dfc037-616a-4274-8a9a-e26f03229738', '8c4cfe4d-479f-4fb7-9403-6fc2a0bd0520', 'c880e241-5296-4286-885c-d59819248be3', '7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('72ce97c4-b39f-46ce-aef2-2b757b75405f', now(), 'Charmander', 'Blaze', 'Charmander', 5, 62, '05ceec13-64d5-4345-8df9-84ca4b135a79', 26, 63, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('72ce97c4-b39f-46ce-aef2-2b757b75405f', now(), 'Charmander', 'Blaze', 'Charmander', 5, 62, '05ceec13-64d5-4345-8df9-84ca4b135a79', 26, 63, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2', '8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('6f4c4ea2-ce62-461a-9561-2a115ee20ff2', now(), 'Charmander', 'Buddy', 'Charmander', 4, 141, '05ceec13-64d5-4345-8df9-84ca4b135a79', 21, 46, '09dfc037-616a-4274-8a9a-e26f03229738', 'af429222-27d5-4771-abae-46d76f234ab4');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('6f4c4ea2-ce62-461a-9561-2a115ee20ff2', now(), 'Charmander', 'Buddy', 'Charmander', 4, 141, '05ceec13-64d5-4345-8df9-84ca4b135a79', 21, 46, '09dfc037-616a-4274-8a9a-e26f03229738', 'af429222-27d5-4771-abae-46d76f234ab4', 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('c5c3dc63-cd98-4c23-902b-8baa032f0a9c', now(), 'Charmander', 'Torch', 'Charmander', 3, 153, '05ceec13-64d5-4345-8df9-84ca4b135a79', 24, 54, 'af429222-27d5-4771-abae-46d76f234ab4', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('c5c3dc63-cd98-4c23-902b-8baa032f0a9c', now(), 'Charmander', 'Torch', 'Charmander', 3, 153, '05ceec13-64d5-4345-8df9-84ca4b135a79', 24, 54, 'af429222-27d5-4771-abae-46d76f234ab4', '6404ac01-7d40-4b9a-9e3c-f0e6ec78f6c2', '09dfc037-616a-4274-8a9a-e26f03229738', '43fe0f77-06aa-491b-a03f-a1a9ed7b47d2');
         
 
         -- Additional Pokemon for brock_boulder to make 6 total
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', now(), 'Pikachu', 'Sparky', 'Electric', 5, 95, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 22, 45, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', 'af429222-27d5-4771-abae-46d76f234ab4');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', now(), 'Pikachu', 'Sparky', 'Electric', 5, 95, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 22, 45, 'b6842384-4b76-4ca9-b49e-ef7c3a6a10ed', 'af429222-27d5-4771-abae-46d76f234ab4', '0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f', '43fe0f77-06aa-491b-a03f-a1a9ed7b47d2');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('b2c3d4e5-f607-8901-bcde-f12345678901', now(), 'Geodude', 'Rocky', 'Rock', 4, 88, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 25, 55, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'cca84005-5a30-4e0d-a6df-1a8fa61654ad');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('b2c3d4e5-f607-8901-bcde-f12345678901', now(), 'Geodude', 'Rocky', 'Rock', 4, 88, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 25, 55, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'cca84005-5a30-4e0d-a6df-1a8fa61654ad', '5860c1eb-5c38-46f5-a6a0-174fc9caedf8', '1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('c3d4e5f6-a708-9012-cdef-123456789012', now(), 'Onix', 'Crusher', 'Rock', 6, 120, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 30, 70, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'b4dcff93-d520-4822-9338-fb15616e5b90');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('c3d4e5f6-a708-9012-cdef-123456789012', now(), 'Onix', 'Crusher', 'Rock', 6, 120, 'e9c30ce7-f62e-464d-ba22-39b936172b57', 30, 70, '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', 'b4dcff93-d520-4822-9338-fb15616e5b90', '5860c1eb-5c38-46f5-a6a0-174fc9caedf8', '8aca389f-4a70-4287-a318-6c42ee5dbca5');
         
 
         -- Additional Pokemon for gary_oak to make 6 total
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('d4e5f607-a809-0123-de2a-234567890123', now(), 'Wartortle', 'Aqua', 'Water', 5, 110, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 27, 58, '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', 'debaf730-cb24-4a75-861d-b144a426968f');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('d4e5f607-a809-0123-de2a-234567890123', now(), 'Wartortle', 'Aqua', 'Water', 5, 110, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 27, 58, '0d6bfbc8-d17e-4c66-a8a1-06d65475f00f', 'debaf730-cb24-4a75-861d-b144a426968f', 'ac5ca494-93de-4f3b-91b1-6627d4375105', 'b4dcff93-d520-4822-9338-fb15616e5b90');
         
 
-        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2)
-        VALUES ('e5f6a708-b900-1234-e2ab-345678901234', now(), 'Nidoking', 'King', 'Poison', 7, 145, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 32, 75, '8aca389f-4a70-4287-a318-6c42ee5dbca5', '5a3c4072-1779-4609-bca8-95ffb5a3d8bd');
+        INSERT INTO pokemon_table (pokemon_id, date_caught, pokemon_name, nickname, type, level, experience_points, trainer_id, attack, health, ability1, ability2, ability3, ability4)
+        VALUES ('e5f6a708-b900-1234-e2ab-345678901234', now(), 'Nidoking', 'King', 'Poison', 7, 145, '1dc1642c-3977-46cb-90ed-7b286dc1806e', 32, 75, '8aca389f-4a70-4287-a318-6c42ee5dbca5', '5a3c4072-1779-4609-bca8-95ffb5a3d8bd', '2e3f4a5b-6c7d-8e9f-0a1b-2c3d4e5f6a7b', '5860c1eb-5c38-46f5-a6a0-174fc9caedf8');
         
