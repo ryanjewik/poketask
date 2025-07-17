@@ -5,6 +5,7 @@ import '../models/pokemon_mcts.dart';
 import '../models/ability_mcts.dart';
 import '../mcts/mcts_search.dart'; // For direct MCTS call
 import 'package:animated_text_kit/animated_text_kit.dart';
+import '../services/music_service.dart';
 
 
 class PokeBattlePage extends StatefulWidget {
@@ -24,6 +25,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   String narration = "";
   bool isAnimating = false;
 
+  bool isMusicPlaying = true;
+
   String getEffectivenessText(double multiplier) {
     if (multiplier >= 2.0) return "It's super effective!";
     if (multiplier >= 1.1) return "It's effective!";
@@ -36,9 +39,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   @override
   void initState() {
     super.initState();
-
-
-
+    playBattleMusic();
+    isMusicPlaying = true;
 
     final squirtle = Pokemon_mcts(
       pokemonName: "Squirtle",
@@ -129,12 +131,27 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     controller = PokeBattleController(gameState: state);
   }
 
+  Future<void> playBattleMusic() async {
+    await MusicService().stopMusic();
+    await MusicService().playMusic('music/battle_music.mp3');
+  }
+
 
   void onPlayerAction(String action) {
     if (isAnimating || controller.isBattleOver) return;
     playTurnAnimationSequence(action);
   }
 
+  void toggleMusic() async {
+    if (isMusicPlaying) {
+      await MusicService().stopMusic();
+    } else {
+      await MusicService().playMusic('music/battle_music.mp3');
+    }
+    setState(() {
+      isMusicPlaying = !isMusicPlaying;
+    });
+  }
 
 
   @override
@@ -146,151 +163,163 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       appBar: AppBar(title: const Text("Pokémon Battle")),
       body: controller.isBattleOver
           ? Center(
-        child: Text(
-          controller.getWinner() == 1
-              ? "You win!"
-              : controller.getWinner() == -1
-              ? "You lose!"
-              : "Draw",
-          style: const TextStyle(fontSize: 24),
-        ),
-      )
+              child: Text(
+                controller.getWinner() == 1
+                    ? "You win!"
+                    : controller.getWinner() == -1
+                        ? "You lose!"
+                        : "Draw",
+                style: const TextStyle(fontSize: 24),
+              ),
+            )
           : Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // OPPONENT STATS
-              _buildPokemonCard(activeOpponent, isOpponent: true),
-              const SizedBox(height: 16),
+              padding: const EdgeInsets.all(12.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Music toggle button at the top right
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
+                          tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
+                          onPressed: toggleMusic,
+                        ),
+                      ],
+                    ),
 
-              // BATTLE ARENA
-              SizedBox(
-                height: 180, // Set a fixed height for the battle arena
-                child: Center(
-                  child: Column(
-                    children: [
-                      if (isAnimating)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    // OPPONENT STATS
+                    _buildPokemonCard(activeOpponent, isOpponent: true),
+                    const SizedBox(height: 16),
+
+                    // BATTLE ARENA
+                    SizedBox(
+                      height: 180, // Set a fixed height for the battle arena
+                      child: Center(
+                        child: Column(
+                          children: [
+                            if (isAnimating)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        "AI is thinking...",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(width: 12),
-                                Text(
-                                  "AI is thinking...",
-                                  style: TextStyle(color: Colors.white),
+                              ),
+
+                            if (lastAiAction != null && lastAiAction!.startsWith("switch_"))
+                              Text(
+                                "AI switched to "+activeOpponent.nickname+"!",
+                                style: const TextStyle(
+                                  color: Colors.deepOrange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Flexible(
+                                  fit: FlexFit.loose,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: _buildAnimatedSprite(activeOpponent, shake: playerJustAttacked),
+                                  ),
+                                ),
+                                Flexible(
+                                  fit: FlexFit.loose,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: _buildAnimatedSprite(activePlayer, shake: opponentJustAttacked),
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
+                          ],
                         ),
+                      ),
+                    ),
 
-                      if (lastAiAction != null && lastAiAction!.startsWith("switch_"))
-                        Text(
-                          "AI switched to "+activeOpponent.nickname+"!",
-                          style: const TextStyle(
-                            color: Colors.deepOrange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Flexible(
-                            fit: FlexFit.loose,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: _buildAnimatedSprite(activeOpponent, shake: playerJustAttacked),
-                            ),
-                          ),
-                          Flexible(
-                            fit: FlexFit.loose,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: _buildAnimatedSprite(activePlayer, shake: opponentJustAttacked),
-                            ),
+
+                    // PLAYER STATS
+                    _buildPokemonCard(activePlayer, isOpponent: false),
+
+                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: AnimatedTextKit(
+                        key: ValueKey(narration), // ensures animation restarts on narration change
+                        animatedTexts: [
+                          TyperAnimatedText(
+                            narration,
+                            textStyle: const TextStyle(color: Colors.white, fontSize: 16),
+                            speed: const Duration(milliseconds: 35),
                           ),
                         ],
+                        totalRepeatCount: 1,
+                        pause: Duration.zero,
+                        displayFullTextOnTap: true,
+                        stopPauseOnTap: true,
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Battle Icon
+                    const Icon(Icons.sports_martial_arts, size: 48),
+                    // ACTIONS
+                    const Text("Choose your move:"),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: controller.getValidActions().map((action) {
+                        final label = _getActionLabel(action);
+                        return ElevatedButton(
+                          onPressed: () => onPlayerAction(action),
+                          child: Text(label),
+                        );
+                      }).toList(),
+                    ),
 
 
-              // PLAYER STATS
-              _buildPokemonCard(activePlayer, isOpponent: false),
-
-              const SizedBox(height: 8),
-
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: AnimatedTextKit(
-                  key: ValueKey(narration), // ensures animation restarts on narration change
-                  animatedTexts: [
-                    TyperAnimatedText(
-                      narration,
-                      textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-                      speed: const Duration(milliseconds: 35),
+                    const SizedBox(height: 16),
+                    ExpansionTile(
+                      title: const Text("Your Team"),
+                      children: [_buildTeamView(controller.state.playerTeam, controller.state.playerActive)],
+                    ),
+                    ExpansionTile(
+                      title: const Text("Opponent Team"),
+                      children: [_buildTeamView(controller.state.opponentTeam, controller.state.opponentActive)],
                     ),
                   ],
-                  totalRepeatCount: 1,
-                  pause: Duration.zero,
-                  displayFullTextOnTap: true,
-                  stopPauseOnTap: true,
                 ),
               ),
-              const SizedBox(height: 12),
-              // Battle Icon
-              const Icon(Icons.sports_martial_arts, size: 48),
-              // ACTIONS
-              const Text("Choose your move:"),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: controller.getValidActions().map((action) {
-                  final label = _getActionLabel(action);
-                  return ElevatedButton(
-                    onPressed: () => onPlayerAction(action),
-                    child: Text(label),
-                  );
-                }).toList(),
-              ),
-
-
-              const SizedBox(height: 16),
-              ExpansionTile(
-                title: const Text("Your Team"),
-                children: [_buildTeamView(controller.state.playerTeam, controller.state.playerActive)],
-              ),
-              ExpansionTile(
-                title: const Text("Opponent Team"),
-                children: [_buildTeamView(controller.state.opponentTeam, controller.state.opponentActive)],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
   String _getActionLabel(String action) {
@@ -485,6 +514,13 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
 
 
+  @override
+  void dispose() {
+    // Stop battle music and resume menu music when leaving the page
+    MusicService().stopMusic(); // Stop battle music
+    MusicService().playMusic('music/menu_music.mp3'); // Resume menu music
+    super.dispose();
+  }
 }
 class AnimatedHPBar extends StatelessWidget {
   final int current;

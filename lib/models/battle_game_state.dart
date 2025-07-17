@@ -33,26 +33,39 @@ class BattleGameState {
   List<String> getValidActions() {
     final actions = <String>[];
     final active = getActive(isPlayerTurn);
+    final team = isPlayerTurn ? playerTeam : opponentTeam;
+    final activeIndex = isPlayerTurn ? playerActive : opponentActive;
 
+    // If active Pokémon is fainted, only allow switches
+    if (active.isFainted) {
+      for (int i = 0; i < team.length; i++) {
+        if (i != activeIndex && !team[i].isFainted) {
+          actions.add("switch_$i");
+        }
+      }
+      return actions;
+    }
+
+    // Otherwise, allow moves and switches
     for (int i = 0; i < active.abilities.length; i++) {
       if (active.abilities[i].remainingUses > 0) {
         actions.add("move_$i");
       }
     }
-
-    final team = isPlayerTurn ? playerTeam : opponentTeam;
-    final activeIndex = isPlayerTurn ? playerActive : opponentActive;
-
     for (int i = 0; i < team.length; i++) {
       if (i != activeIndex && !team[i].isFainted) {
         actions.add("switch_$i");
       }
     }
-
     return actions;
   }
 
   void applyAction(String action) {
+    final active = getActive(isPlayerTurn);
+    // Prevent moves if active Pokémon is fainted
+    if (active.isFainted && action.startsWith("move_")) {
+      return;
+    }
     if (action.startsWith("move_")) {
       final index = int.parse(action.split("_")[1]);
       _applyMove(index);
@@ -109,8 +122,9 @@ class BattleGameState {
   }
 
   bool get isTerminal {
-    return playerTeam.every((p) => p.isFainted) ||
-        opponentTeam.every((p) => p.isFainted);
+    final playerAlive = playerTeam.any((p) => !p.isFainted);
+    final opponentAlive = opponentTeam.any((p) => !p.isFainted);
+    return !playerAlive || !opponentAlive;
   }
 
   int evaluate() {

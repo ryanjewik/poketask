@@ -6,6 +6,7 @@ import '../services/my_scaffold.dart';
 import '../services/task_details_card.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
+import '../services/music_service.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -40,6 +41,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   AnimationController? _controller;
   Animation<double>? _animation;
 
+  bool isMusicPlaying = true;
+
 
 
   @override
@@ -58,6 +61,20 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     fetchTrainerData();
     fetchPokemonData();
     fetchTaskData();
+    // Start menu music by default
+    MusicService().playMusic('music/menu_music.mp3');
+    isMusicPlaying = true;
+  }
+
+  void toggleMusic() async {
+    if (isMusicPlaying) {
+      await MusicService().stopMusic();
+    } else {
+      await MusicService().playMusic('music/menu_music.mp3');
+    }
+    setState(() {
+      isMusicPlaying = !isMusicPlaying;
+    });
   }
 
   Future<void> fetchTrainerData() async {
@@ -247,13 +264,25 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                             children: [
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                child: Text(
-                                  "Today's tasks",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Today's tasks",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    FloatingActionButton(
+                                      mini: true,
+                                      onPressed: toggleMusic,
+                                      backgroundColor: Colors.blueAccent,
+                                      child: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
+                                      tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
+                                    ),
+                                  ],
                                 ),
                               ),
                               Expanded(

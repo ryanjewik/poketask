@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
 import '../services/my_scaffold.dart';
+import '../services/music_service.dart';
 
 
 class BattlesPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+
     _controllers = List.generate(5, (i) => AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1200 + i * 60),
@@ -49,7 +51,6 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
   }
 
   Future<void> fetchTrainerAndPokemon() async {
-    if (!mounted) return;
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -112,8 +113,9 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
+    MusicService().playMusic('music/menu_music.mp3');
+    for (final controller in _controllers) {
+      controller.dispose();
     }
     super.dispose();
   }

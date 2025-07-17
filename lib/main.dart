@@ -10,6 +10,7 @@ import 'pages/homepage.dart';
 import 'pages/pokebattle_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
+import 'services/music_service.dart';
 
 
 final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -32,6 +33,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Start menu music globally
+    MusicService().playMusic('music/menu_music.mp3');
     return MaterialApp(
       //showPerformanceOverlay: true,
       title: 'Poketask',
