@@ -2,6 +2,12 @@
   "configVersion": 2,
   "packages": [
     {
+      "name": "animated_text_kit",
+      "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/animated_text_kit-4.2.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "app_links",
       "rootUri": "file:///C:/Users/owner/AppData/Local/Pub/Cache/hosted/pub.dev/app_links-6.4.0",
       "packageUri": "lib/",

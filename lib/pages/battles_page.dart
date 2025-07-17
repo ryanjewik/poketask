@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/pokemon.dart';
-import '../models/pokemon_list.dart';
 import '../models/trainer.dart';
 import '../services/my_scaffold.dart';
-import '../models/trainer_list.dart';
+
 
 class BattlesPage extends StatefulWidget {
   const BattlesPage({super.key, required this.trainerId});
@@ -23,6 +22,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
   bool isLoading = true;
   String? errorMessage;
   List<Pokemon> trainerPokemons = [];
+  List<Trainer> trainerList = [];
 
   @override
   void initState() {
@@ -45,6 +45,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
       });
     }
     fetchTrainerAndPokemon();
+    fetchAllTrainers();
   }
 
   Future<void> fetchTrainerAndPokemon() async {
@@ -99,6 +100,14 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
         });
       }
     }
+  }
+
+  Future<void> fetchAllTrainers() async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('trainer_table')
+        .select();
+    trainerList = (response as List).map((json) => Trainer.fromJson(json)).toList();
   }
 
   @override

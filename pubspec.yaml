@@ -39,6 +39,8 @@ dependencies:
   flutter_dotenv: ^5.1.0
   uuid: ^4.5.1
   flutter_colorpicker: ^1.0.3
+  animated_text_kit: ^4.2.2
+
 
 dev_dependencies:
   flutter_test:
@@ -95,6 +97,14 @@ flutter:
     - assets/sprites/rhyhorn.png
     - assets/sprites/machop.png
     - assets/sprites/sandslash.png
+    - assets/sprites/charmeleon.png
+    - assets/sprites/charizard.png
+    - assets/sprites/ivysaur.png
+    - assets/sprites/venusaur.png
+    - assets/sprites/blastoise.png
+    - assets/sprites/pidgey.png
+    - assets/sprites/pidgeotto.png
+    - assets/sprites/pidgeot.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg
