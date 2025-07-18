@@ -27,6 +27,15 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
   bool isMusicPlaying = true;
 
+  String selectedArena = "";
+  String selectedArenaText = "";
+  final List<String> arenaTypes = [
+    'desert', 'water', 'snow', 'hills', 'cave', 'beach', 'grass'
+  ];
+
+  // Fix: Add movesExpanded to control ExpansionTile state
+  final bool movesExpanded = true;
+
   String getEffectivenessText(double multiplier) {
     if (multiplier >= 2.0) return "It's super effective!";
     if (multiplier >= 1.1) return "It's effective!";
@@ -52,6 +61,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Water Gun", type: "Water", maxUses: 10, hitRate: 90, value: 12),
         Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Bubble", type: "Water", maxUses: 10, hitRate: 95, value: 10),
+        Ability_mcts(name: "Withdraw", type: "Water", maxUses: 10, hitRate: 100, value: 0),
       ],
     );
 
@@ -65,6 +76,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Vine Whip", type: "Grass", maxUses: 10, hitRate: 90, value: 13),
         Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Leech Seed", type: "Grass", maxUses: 10, hitRate: 90, value: 8),
       ],
     );
 
@@ -78,6 +91,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Thunder Shock", type: "Electric", maxUses: 10, hitRate: 90, value: 14),
         Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Tail Whip", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Electro Ball", type: "Electric", maxUses: 10, hitRate: 90, value: 16),
       ],
     );
 
@@ -91,6 +106,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Ember", type: "Fire", maxUses: 10, hitRate: 90, value: 13),
         Ability_mcts(name: "Scratch", type: "Normal", maxUses: 15, hitRate: 100, value: 9),
+        Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Dragon Breath", type: "Dragon", maxUses: 10, hitRate: 90, value: 15),
       ],
     );
 
@@ -104,6 +121,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Gust", type: "Normal", maxUses: 15, hitRate: 95, value: 11),
         Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Wing Attack", type: "Flying", maxUses: 10, hitRate: 95, value: 13),
       ],
     );
 
@@ -117,11 +136,57 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       abilities: [
         Ability_mcts(name: "Rock Throw", type: "Rock", maxUses: 10, hitRate: 90, value: 15),
         Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Magnitude", type: "Ground", maxUses: 10, hitRate: 90, value: 17),
       ],
     );
 
-    final playerTeam = [squirtle, bulbasaur, pikachu];
-    final opponentTeam = [charmander, pidgey, geodude];
+    // Add 3 more Pokémon for each team
+    final eevee = Pokemon_mcts(
+      pokemonName: "Eevee",
+      nickname: "Fuzzy",
+      type: "Normal",
+      level: 5,
+      attack: 10,
+      maxHealth: 34,
+      abilities: [
+        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Swift", type: "Normal", maxUses: 10, hitRate: 100, value: 12),
+      ],
+    );
+    final jigglypuff = Pokemon_mcts(
+      pokemonName: "Jigglypuff",
+      nickname: "Puffy",
+      type: "Fairy",
+      level: 5,
+      attack: 8,
+      maxHealth: 38,
+      abilities: [
+        Ability_mcts(name: "Sing", type: "Normal", maxUses: 10, hitRate: 80, value: 0),
+        Ability_mcts(name: "Pound", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
+        Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Disarming Voice", type: "Fairy", maxUses: 10, hitRate: 100, value: 13),
+      ],
+    );
+    final machop = Pokemon_mcts(
+      pokemonName: "Machop",
+      nickname: "Muscle",
+      type: "Fighting",
+      level: 5,
+      attack: 13,
+      maxHealth: 36,
+      abilities: [
+        Ability_mcts(name: "Karate Chop", type: "Fighting", maxUses: 10, hitRate: 95, value: 14),
+        Ability_mcts(name: "Low Kick", type: "Fighting", maxUses: 10, hitRate: 90, value: 13),
+        Ability_mcts(name: "Leer", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+        Ability_mcts(name: "Focus Energy", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
+      ],
+    );
+
+    final playerTeam = [squirtle, bulbasaur, pikachu, eevee, jigglypuff, machop];
+    final opponentTeam = [charmander, pidgey, geodude, eevee, jigglypuff, machop];
 
     final state = BattleGameState(
       playerTeam: playerTeam,
@@ -129,6 +194,11 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     );
 
     controller = PokeBattleController(gameState: state);
+
+    // Randomly select an arena type
+    final rand = arenaTypes..shuffle();
+    selectedArena = rand.first;
+    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
   }
 
   Future<void> playBattleMusic() async {
@@ -161,162 +231,253 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Pokémon Battle")),
-      body: controller.isBattleOver
-          ? Center(
-              child: Text(
-                controller.getWinner() == 1
-                    ? "You win!"
-                    : controller.getWinner() == -1
-                        ? "You lose!"
-                        : "Draw",
-                style: const TextStyle(fontSize: 24),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Music toggle button at the top right
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
-                          tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
-                          onPressed: toggleMusic,
+      backgroundColor: Colors.redAccent,
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Colors.redAccent,
+        ),
+        child: controller.isBattleOver
+            ? Center(
+                child: Text(
+                  controller.getWinner() == 1
+                      ? "You win!"
+                      : controller.getWinner() == -1
+                          ? "You lose!"
+                          : "Draw",
+                  style: const TextStyle(fontSize: 24),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/background/' + selectedArena + '-battle-background.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
-                    ),
-
-                    // OPPONENT STATS
-                    _buildPokemonCard(activeOpponent, isOpponent: true),
-                    const SizedBox(height: 16),
-
-                    // BATTLE ARENA
-                    SizedBox(
-                      height: 180, // Set a fixed height for the battle arena
-                      child: Center(
                         child: Column(
                           children: [
-                            if (isAnimating)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.6),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            Container(
+                              child: Column(
+                                  children: [
+                                  Stack(
+                                    children:[
+                                      _buildPokemonCard(activeOpponent, isOpponent: true),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
+                                            tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
+                                            onPressed: toggleMusic,
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(width: 12),
-                                      Text(
-                                        "AI is thinking...",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ],
+                                    ]
                                   ),
-                                ),
-                              ),
+                                  // OPPONENT STATS
 
-                            if (lastAiAction != null && lastAiAction!.startsWith("switch_"))
-                              Text(
-                                "AI switched to "+activeOpponent.nickname+"!",
-                                style: const TextStyle(
-                                  color: Colors.deepOrange,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: _buildAnimatedSprite(activeOpponent, shake: playerJustAttacked),
+                                  const SizedBox(height: 16),
+
+                                  // BATTLE ARENA
+                                  Stack(
+                                    children: [
+                                      SizedBox(
+                                        height: 140, // Set a fixed height for the battle arena
+                                        child: Center(
+                                          child: Column(
+                                            children: [
+                                              if (lastAiAction != null && lastAiAction!.startsWith("switch_"))
+                                                Text(
+                                                  "AI switched to "+activeOpponent.nickname+"!",
+                                                  style: const TextStyle(
+                                                    color: Colors.deepOrange,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              const SizedBox(height: 8),
+                                              Row( //  FIGHTING SCREEN
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: [
+                                                  Flexible(
+                                                    fit: FlexFit.loose,
+                                                    child: FittedBox(
+                                                      fit: BoxFit.scaleDown,
+                                                      child: _buildAnimatedSprite(activePlayer, shake: opponentJustAttacked),
+                                                    ),
+                                                  ),
+                                                  Flexible(
+                                                    fit: FlexFit.loose,
+                                                    child: FittedBox(
+                                                      fit: BoxFit.scaleDown,
+                                                      child: _buildAnimatedSprite(activeOpponent, shake: playerJustAttacked),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      if (isAnimating)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.6),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: const [
+                                                SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                                ),
+                                                SizedBox(width: 12),
+                                                Text(
+                                                  "AI is thinking...",
+                                                  style: TextStyle(color: Colors.white),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ]
                                   ),
-                                ),
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: _buildAnimatedSprite(activePlayer, shake: opponentJustAttacked),
-                                  ),
-                                ),
-                              ],
-                            ),
+                                  // PLAYER STATS
+                                  _buildPokemonCard(activePlayer, isOpponent: false),
+
+                                ]
+                              )
+                            ), // battle space
                           ],
                         ),
                       ),
-                    ),
+                      Container(
+                        color: Colors.redAccent,
+                        child: Column(
+                          children: [
+                            //MOVES AND OTHER STUFF
+                            const SizedBox(height: 8),
+
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              // NARRATION
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.cyanAccent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.black54, width: 2),
+                                ),
+                                child: AnimatedTextKit(
+                                  key: ValueKey(narration), // ensures animation restarts on narration change
+                                  animatedTexts: [
+                                    TyperAnimatedText(
+                                      narration,
+                                      textStyle: const TextStyle(color: Colors.black54, fontSize: 16),
+                                      speed: const Duration(milliseconds: 35),
+                                    ),
+                                  ],
+                                  totalRepeatCount: 1,
+                                  pause: Duration.zero,
+                                  displayFullTextOnTap: true,
+                                  stopPauseOnTap: true,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            // ACTIONS
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ExpansionTile(
+                                  title: const Text("Moves", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  initiallyExpanded: movesExpanded,
+                                  children: [
+                                    Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black26, width: 1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: controller.getValidActions().where((action) => action.startsWith("move_")).map((action) {
+                                          final label = _getActionLabel(action);
+                                          String usesInfo = "";
+                                          final player = controller.state.getActive(true);
+                                          final index = int.tryParse(action.split("_")[1]) ?? 0;
+                                          if (index >= 0 && index < player.abilities.length) {
+                                            final ability = player.abilities[index];
+                                            usesInfo = " (${ability.remainingUses}/${ability.maxUses})";
+                                          }
+                                          return ElevatedButton(
+                                            onPressed: () => onPlayerAction(action),
+                                            child: Text(label + usesInfo),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                ExpansionTile(
+                                  title: const Text("Switch", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black26, width: 1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: GridView.count(
+                                        crossAxisCount: 2,
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        childAspectRatio: 2.8,
+                                        mainAxisSpacing: 8,
+                                        crossAxisSpacing: 8,
+                                        children: controller.getValidActions().where((action) => action.startsWith("switch_")).map((action) {
+                                          final label = _getActionLabel(action);
+                                          final team = controller.state.playerTeam;
+                                          final index = int.tryParse(action.split("_")[1]) ?? 0;
+                                          String hpInfo = "";
+                                          if (index >= 0 && index < team.length) {
+                                            final poke = team[index];
+                                            hpInfo = "  HP: ${poke.currentHealth}/${poke.maxHealth}";
+                                          }
+                                          return ElevatedButton(
+                                            onPressed: () => onPlayerAction(action),
+                                            child: Text(label + hpInfo),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
 
 
-                    // PLAYER STATS
-                    _buildPokemonCard(activePlayer, isOpponent: false),
-
-                    const SizedBox(height: 8),
-
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
+                            const SizedBox(height: 16),
+                          ]
+                        )
                       ),
-                      child: AnimatedTextKit(
-                        key: ValueKey(narration), // ensures animation restarts on narration change
-                        animatedTexts: [
-                          TyperAnimatedText(
-                            narration,
-                            textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-                            speed: const Duration(milliseconds: 35),
-                          ),
-                        ],
-                        totalRepeatCount: 1,
-                        pause: Duration.zero,
-                        displayFullTextOnTap: true,
-                        stopPauseOnTap: true,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Battle Icon
-                    const Icon(Icons.sports_martial_arts, size: 48),
-                    // ACTIONS
-                    const Text("Choose your move:"),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.getValidActions().map((action) {
-                        final label = _getActionLabel(action);
-                        return ElevatedButton(
-                          onPressed: () => onPlayerAction(action),
-                          child: Text(label),
-                        );
-                      }).toList(),
-                    ),
-
-
-                    const SizedBox(height: 16),
-                    ExpansionTile(
-                      title: const Text("Your Team"),
-                      children: [_buildTeamView(controller.state.playerTeam, controller.state.playerActive)],
-                    ),
-                    ExpansionTile(
-                      title: const Text("Opponent Team"),
-                      children: [_buildTeamView(controller.state.opponentTeam, controller.state.opponentActive)],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -338,51 +499,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   }
 
 
-  Widget _buildTeamView(List<Pokemon_mcts> team, int activeIndex) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: team.asMap().entries.map((entry) {
-        final i = entry.key;
-        final p = entry.value;
-        final isActive = i == activeIndex;
-        final status = p.isFainted
-            ? " (Fainted)"
-            : isActive
-            ? " (Active)"
-            : "";
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "${p.nickname}: ${p.currentHealth}/${p.maxHealth}$status",
-              style: TextStyle(
-                color: p.isFainted ? Colors.grey : Colors.black,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (!p.isFainted)
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: p.abilities.map((ability) {
-                    return Text(
-                      "- ${ability.name} (${ability.remainingUses}/${ability.maxUses})",
-                      style: const TextStyle(fontSize: 12),
-                    );
-                  }).toList(),
-                ),
-              ),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
   Widget _buildPokemonCard(Pokemon_mcts p, {required bool isOpponent}) {
-    final spritePath = 'assets/sprites/${p.pokemonName.toLowerCase()}.png';
-
     return Card(
       elevation: 2,
       color: p.isFainted ? Colors.grey[200] : (isOpponent ? Colors.red[100] : Colors.blue[100]),
@@ -391,26 +508,18 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text("${p.nickname} (${p.pokemonName})",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
             Row(
               children: [
-                Image.asset(spritePath, width: 64, height: 64, fit: BoxFit.contain),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("${p.nickname} (${p.pokemonName})",
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text("Type: ${p.type}"),
-                    Text("HP: ${p.currentHealth}/${p.maxHealth}"),
-                    AnimatedHPBar(current: p.currentHealth, max: p.maxHealth),
-                  ],
-                ),
+                Text("HP: ${p.currentHealth}/${p.maxHealth}"),
+                const SizedBox(width: 16),
+                Text("Type: ${p.type}"),
               ],
             ),
             const SizedBox(height: 4),
-            Text("Abilities:"),
-            ...p.abilities.map((a) =>
-                Text("- ${a.name} (${a.remainingUses}/${a.maxUses})")).toList(),
+            AnimatedHPBar(current: p.currentHealth, max: p.maxHealth),
           ],
         ),
       ),
@@ -542,7 +651,7 @@ class AnimatedHPBar extends StatelessWidget {
       duration: const Duration(milliseconds: 500),
       builder: (context, value, _) {
         return SizedBox(
-          width: 120, // or MediaQuery.of(context).size.width * 0.4 for responsive
+          width: 170, // or MediaQuery.of(context).size.width * 0.4 for responsive
           child: ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(

@@ -106,11 +106,13 @@ flutter:
     - assets/sprites/pidgey.png
     - assets/sprites/pidgeotto.png
     - assets/sprites/pidgeot.png
+    - assets/sprites/eevee.png
+    - assets/sprites/jigglypuff.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg
-    - assets/background/hills-battle-background.png
-    - assets/background/grass-battle-background.png
+    - assets/background/hills-battle-background.jpg
+    - assets/background/grass-battle-background.jpg
     - assets/background/desert-battle-background.jpg
     - assets/background/cave-battle-background.jpg
     - assets/background/beach-battle-background.jpg
