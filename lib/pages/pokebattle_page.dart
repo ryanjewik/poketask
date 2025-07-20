@@ -6,6 +6,7 @@ import '../models/ability_mcts.dart';
 import '../mcts/mcts_search.dart'; // For direct MCTS call
 import 'package:animated_text_kit/animated_text_kit.dart';
 import '../services/music_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class PokeBattlePage extends StatefulWidget {
@@ -33,8 +34,104 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     'desert', 'water', 'snow', 'hills', 'cave', 'beach', 'grass'
   ];
 
-  // Fix: Add movesExpanded to control ExpansionTile state
   final bool movesExpanded = true;
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    playBattleMusic();
+    isMusicPlaying = true;
+    _initTeams();
+  }
+
+  Future<void> _initTeams() async {
+    setState(() { isLoading = true; });
+    final supabase = Supabase.instance.client;
+    // Fetch player trainer row
+    final trainerRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', widget.trainerId)
+      .single();
+    if (trainerRes == null) {
+      setState(() { narration = "Trainer not found."; isLoading = false; });
+      return;
+    }
+    // Get player team
+    final playerTeam = await _fetchTeamFromTrainerRow(trainerRes);
+    // Get random opponent trainer
+    final trainers = await supabase
+      .from('trainer_table')
+      .select('trainer_id');
+    final opponentIds = trainers.where((t) => t['trainer_id'] != widget.trainerId).toList();
+    opponentIds.shuffle();
+    final opponentId = opponentIds.isNotEmpty ? opponentIds.first['trainer_id'] : widget.trainerId;
+    final opponentRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', opponentId)
+      .single();
+    final opponentTeam = await _fetchTeamFromTrainerRow(opponentRes);
+    // Setup battle state
+    final state = BattleGameState(
+      playerTeam: playerTeam,
+      opponentTeam: opponentTeam,
+    );
+    controller = PokeBattleController(gameState: state);
+    // Randomly select an arena type
+    final rand = arenaTypes..shuffle();
+    selectedArena = rand.first;
+    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
+    setState(() { isLoading = false; });
+  }
+
+  Future<List<Pokemon_mcts>> _fetchTeamFromTrainerRow(Map trainerRow) async {
+    final supabase = Supabase.instance.client;
+    List<Pokemon_mcts> team = [];
+    for (int i = 1; i <= 6; i++) {
+      final slotKey = 'pokemon_slot_$i';
+      final pokeId = trainerRow[slotKey];
+      if (pokeId == null) continue;
+      final pokeRes = await supabase
+        .from('pokemon_table')
+        .select()
+        .eq('pokemon_id', pokeId)
+        .maybeSingle(); // safer than .single()
+      if (pokeRes == null) continue;
+      // Fetch abilities
+      List<Ability_mcts> abilities = [];
+      for (int j = 1; j <= 4; j++) {
+        final abKey = 'ability$j';
+        final abId = pokeRes[abKey];
+        if (abId == null) continue;
+        final abRes = await supabase
+          .from('abilities_table')
+          .select()
+          .eq('ability_id', abId)
+          .maybeSingle(); // safer than .single()
+        if (abRes == null) continue;
+        abilities.add(Ability_mcts(
+          name: abRes['ability_name'],
+          type: abRes['type'],
+          maxUses: abRes['uses'],
+          hitRate: abRes['hitrate'],
+          value: abRes['value'],
+        ));
+      }
+      team.add(Pokemon_mcts(
+        pokemonName: pokeRes['pokemon_name'],
+        nickname: pokeRes['nickname'],
+        type: pokeRes['type'],
+        level: pokeRes['level'],
+        attack: pokeRes['attack'],
+        maxHealth: pokeRes['health'],
+        abilities: abilities,
+      ));
+    }
+    return team;
+  }
 
   String getEffectivenessText(double multiplier) {
     if (multiplier >= 2.0) return "It's super effective!";
@@ -46,186 +143,13 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
 
   @override
-  void initState() {
-    super.initState();
-    playBattleMusic();
-    isMusicPlaying = true;
-
-    final squirtle = Pokemon_mcts(
-      pokemonName: "Squirtle",
-      nickname: "Bubbles",
-      type: "Water",
-      level: 5,
-      attack: 10,
-      maxHealth: 35,
-      abilities: [
-        Ability_mcts(name: "Water Gun", type: "Water", maxUses: 10, hitRate: 90, value: 12),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Bubble", type: "Water", maxUses: 10, hitRate: 95, value: 10),
-        Ability_mcts(name: "Withdraw", type: "Water", maxUses: 10, hitRate: 100, value: 0),
-      ],
-    );
-
-    final bulbasaur = Pokemon_mcts(
-      pokemonName: "Bulbasaur",
-      nickname: "Leafy",
-      type: "Grass",
-      level: 5,
-      attack: 9,
-      maxHealth: 38,
-      abilities: [
-        Ability_mcts(name: "Vine Whip", type: "Grass", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Leech Seed", type: "Grass", maxUses: 10, hitRate: 90, value: 8),
-      ],
-    );
-
-    final pikachu = Pokemon_mcts(
-      pokemonName: "Pikachu",
-      nickname: "Zappy",
-      type: "Electric",
-      level: 5,
-      attack: 11,
-      maxHealth: 32,
-      abilities: [
-        Ability_mcts(name: "Thunder Shock", type: "Electric", maxUses: 10, hitRate: 90, value: 14),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Tail Whip", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Electro Ball", type: "Electric", maxUses: 10, hitRate: 90, value: 16),
-      ],
-    );
-
-    final charmander = Pokemon_mcts(
-      pokemonName: "Charmander",
-      nickname: "Flamey",
-      type: "Fire",
-      level: 5,
-      attack: 12,
-      maxHealth: 33,
-      abilities: [
-        Ability_mcts(name: "Ember", type: "Fire", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Scratch", type: "Normal", maxUses: 15, hitRate: 100, value: 9),
-        Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Dragon Breath", type: "Dragon", maxUses: 10, hitRate: 90, value: 15),
-      ],
-    );
-
-    final pidgey = Pokemon_mcts(
-      pokemonName: "Pidgey",
-      nickname: "Wings",
-      type: "Normal",
-      level: 5,
-      attack: 8,
-      maxHealth: 30,
-      abilities: [
-        Ability_mcts(name: "Gust", type: "Normal", maxUses: 15, hitRate: 95, value: 11),
-        Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Wing Attack", type: "Flying", maxUses: 10, hitRate: 95, value: 13),
-      ],
-    );
-
-    final geodude = Pokemon_mcts(
-      pokemonName: "Geodude",
-      nickname: "Rocky",
-      type: "Rock",
-      level: 5,
-      attack: 13,
-      maxHealth: 40,
-      abilities: [
-        Ability_mcts(name: "Rock Throw", type: "Rock", maxUses: 10, hitRate: 90, value: 15),
-        Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Magnitude", type: "Ground", maxUses: 10, hitRate: 90, value: 17),
-      ],
-    );
-
-    // Add 3 more Pokémon for each team
-    final eevee = Pokemon_mcts(
-      pokemonName: "Eevee",
-      nickname: "Fuzzy",
-      type: "Normal",
-      level: 5,
-      attack: 10,
-      maxHealth: 34,
-      abilities: [
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Swift", type: "Normal", maxUses: 10, hitRate: 100, value: 12),
-      ],
-    );
-    final jigglypuff = Pokemon_mcts(
-      pokemonName: "Jigglypuff",
-      nickname: "Puffy",
-      type: "Fairy",
-      level: 5,
-      attack: 8,
-      maxHealth: 38,
-      abilities: [
-        Ability_mcts(name: "Sing", type: "Normal", maxUses: 10, hitRate: 80, value: 0),
-        Ability_mcts(name: "Pound", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Disarming Voice", type: "Fairy", maxUses: 10, hitRate: 100, value: 13),
-      ],
-    );
-    final machop = Pokemon_mcts(
-      pokemonName: "Machop",
-      nickname: "Muscle",
-      type: "Fighting",
-      level: 5,
-      attack: 13,
-      maxHealth: 36,
-      abilities: [
-        Ability_mcts(name: "Karate Chop", type: "Fighting", maxUses: 10, hitRate: 95, value: 14),
-        Ability_mcts(name: "Low Kick", type: "Fighting", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Leer", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Focus Energy", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-      ],
-    );
-
-    final playerTeam = [squirtle, bulbasaur, pikachu, eevee, jigglypuff, machop];
-    final opponentTeam = [charmander, pidgey, geodude, eevee, jigglypuff, machop];
-
-    final state = BattleGameState(
-      playerTeam: playerTeam,
-      opponentTeam: opponentTeam,
-    );
-
-    controller = PokeBattleController(gameState: state);
-
-    // Randomly select an arena type
-    final rand = arenaTypes..shuffle();
-    selectedArena = rand.first;
-    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
-  }
-
-  Future<void> playBattleMusic() async {
-    await MusicService().stopMusic();
-    await MusicService().playMusic('music/battle_music.mp3');
-  }
-
-
-  void onPlayerAction(String action) {
-    if (isAnimating || controller.isBattleOver) return;
-    playTurnAnimationSequence(action);
-  }
-
-  void toggleMusic() async {
-    if (isMusicPlaying) {
-      await MusicService().stopMusic();
-    } else {
-      await MusicService().playMusic('music/battle_music.mp3');
-    }
-    setState(() {
-      isMusicPlaying = !isMusicPlaying;
-    });
-  }
-
-
-  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Pokémon Battle")),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final activePlayer = controller.state.getActive(true);
     final activeOpponent = controller.state.getActive(false);
 
@@ -620,7 +544,24 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     }
   }
 
+  void playBattleMusic() {
+    MusicService().playMusic('music/battle_music.mp3');
+  }
 
+  void toggleMusic() {
+    setState(() {
+      isMusicPlaying = !isMusicPlaying;
+      if (isMusicPlaying) {
+        MusicService().playMusic('music/battle_music.mp3');
+      } else {
+        MusicService().stopMusic();
+      }
+    });
+  }
+
+  void onPlayerAction(String action) {
+    playTurnAnimationSequence(action);
+  }
 
 
   @override

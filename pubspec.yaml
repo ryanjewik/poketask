@@ -83,16 +83,13 @@ flutter:
     - assets/background/purple_background.jpg
     - assets/background/zigzag_background.jpg
     - assets/sprites/squirtle.png
-    - assets/sprites/squirtle2.png
     - assets/sprites/charmander.png
-    - assets/sprites/charmander2.png
     - assets/sprites/bulbasaur.png
     - assets/sprites/geodude.png
     - assets/sprites/pikachu.png
     - assets/sprites/onix.png
     - assets/sprites/nidoking.png
     - assets/sprites/wartortle.png
-    - assets/sprites/bulbasaur2.png
     - assets/sprites/graveler.png
     - assets/sprites/golem.png
     - assets/sprites/rhyhorn.png
@@ -108,6 +105,50 @@ flutter:
     - assets/sprites/pidgeot.png
     - assets/sprites/eevee.png
     - assets/sprites/jigglypuff.png
+    - assets/sprites/voltorb.png
+    - assets/sprites/zapdos.png
+    - assets/sprites/raichu.png
+    - assets/sprites/slowbro.png
+    - assets/sprites/spearow.png
+    - assets/sprites/vileplume.png
+    - assets/sprites/tangela.png
+    - assets/sprites/venomoth.png
+    - assets/sprites/staryu.png
+    - assets/sprites/rattata.png
+    - assets/sprites/psyduck.png
+    - assets/sprites/parasect.png
+    - assets/sprites/meowth.png
+    - assets/sprites/golduck.png
+    - assets/sprites/electabuzz.png
+    - assets/sprites/hypno.png
+    - assets/sprites/jynx.png
+    - assets/sprites/jolteon.png
+    - assets/sprites/magnemite.png
+    - assets/sprites/mewtwo.png
+    - assets/sprites/magikarp.png
+    - assets/sprites/alakazam.png
+    - assets/sprites/gyrados.png
+    - assets/sprites/kakuna.png
+    - assets/sprites/caterpie.png
+    - assets/sprites/metapod.png
+    - assets/sprites/weedle.png
+    - assets/sprites/beedrill.png
+    - assets/sprites/fearow.png
+    - assets/sprites/arbok.png
+    - assets/sprites/ekans.png
+    - assets/sprites/raticate.png
+    - assets/sprites/sandshrew.png
+    - assets/sprites/nidoran.png
+    - assets/sprites/nidorino.png
+    - assets/sprites/gloom.png
+    - assets/sprites/oddish.png
+    - assets/sprites/machoke.png
+    - assets/sprites/machamp.png
+    - assets/sprites/poliwag.png
+    - assets/sprites/poliwhirl.png
+    - assets/sprites/poliwrath.png
+    - assets/sprites/diglett.png
+    - assets/sprites/dugtrio.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg
