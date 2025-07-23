@@ -150,6 +150,45 @@ flutter:
     - assets/sprites/poliwrath.png
     - assets/sprites/diglett.png
     - assets/sprites/dugtrio.png
+    - assets/sprites/abra.png
+    - assets/sprites/kadabra.png
+    - assets/sprites/slowpoke.png
+    - assets/sprites/magnetron.png
+    - assets/sprites/exeggcute.png
+    - assets/sprites/exeggutor.png
+    - assets/sprites/cubone.png
+    - assets/sprites/marowak.png
+    - assets/sprites/victreebel.png
+    - assets/sprites/bellsprout.png
+    - assets/sprites/weepinbell.png
+    - assets/sprites/horsea.png
+    - assets/sprites/seadra.png
+    - assets/sprites/lapras.png
+    - assets/sprites/dragonite.png
+    - assets/sprites/dragonair.png
+    - assets/sprites/dratini.png
+    - assets/sprites/magmar.png
+    - assets/sprites/gastly.png
+    - assets/sprites/haunter.png
+    - assets/sprites/gengar.png
+    - assets/sprites/scyther.png
+    - assets/sprites/tentacool.png
+    - assets/sprites/tentacruel.png
+    - assets/sprites/farfetchd.png
+    - assets/sprites/flareon.png
+    - assets/sprites/vaporeon.png
+    - assets/sprites/snorlax.png
+    - assets/sprites/porygon.png
+    - assets/sprites/articuno.png
+    - assets/sprites/moltres.png
+    - assets/sprites/starmie.png
+    - assets/sprites/rhydon.png
+    - assets/sprites/electrode.png
+    - assets/sprites/drowzee.png
+    - assets/sprites/venonat.png
+    - assets/sprites/mew.png
+    - assets/sprites/aerodactyl.png
+    - assets/sprites/persian.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg
