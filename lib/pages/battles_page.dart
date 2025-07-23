@@ -495,10 +495,6 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                           ],
                         ),
                 ),
-                Divider(
-                  thickness: 4,
-                  color: Colors.amber,
-                ),
                 Padding(
                   padding: EdgeInsets.zero, // no margin above/below
                   child: ToggleButtons(
