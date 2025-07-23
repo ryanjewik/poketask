@@ -6,6 +6,9 @@ import '../models/ability_mcts.dart';
 import '../mcts/mcts_search.dart'; // For direct MCTS call
 import 'package:animated_text_kit/animated_text_kit.dart';
 import '../services/music_service.dart';
+import '../services/xp_utils.dart';
+import '../services/ability_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class PokeBattlePage extends StatefulWidget {
@@ -33,8 +36,119 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     'desert', 'water', 'snow', 'hills', 'cave', 'beach', 'grass'
   ];
 
-  // Fix: Add movesExpanded to control ExpansionTile state
   final bool movesExpanded = true;
+
+  bool isLoading = true;
+
+  String? winnerTrainerName;
+
+  bool hasHandledBattleEnd = false;
+
+  String? playerTrainerName;
+  String? opponentTrainerName;
+  String? playerName;
+  String? opponentName;
+
+  @override
+  void initState() {
+    super.initState();
+    // Stop menu music before starting battle music
+    MusicService().stopMusic();
+    playBattleMusic();
+    isMusicPlaying = true;
+    _initTeams();
+  }
+
+  Future<void> _initTeams() async {
+    setState(() { isLoading = true; });
+    final supabase = Supabase.instance.client;
+    // Fetch player trainer row
+    final trainerRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', widget.trainerId)
+      .single();
+    if (trainerRes == null) {
+      setState(() { narration = "Trainer not found."; isLoading = false; });
+      return;
+    }
+    playerTrainerName = trainerRes['username'] ?? 'You';
+    playerName = playerTrainerName;
+    // Get player team
+    final playerTeam = await _fetchTeamFromTrainerRow(trainerRes);
+    // Get random opponent trainer
+    final trainers = await supabase
+      .from('trainer_table')
+      .select('trainer_id,username');
+    final opponentIds = trainers.where((t) => t['trainer_id'] != widget.trainerId).toList();
+    opponentIds.shuffle();
+    final opponentId = opponentIds.isNotEmpty ? opponentIds.first['trainer_id'] : widget.trainerId;
+    final opponentRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', opponentId)
+      .single();
+    opponentTrainerName = opponentRes['username'] ?? 'Opponent';
+    opponentName = opponentTrainerName;
+    final opponentTeam = await _fetchTeamFromTrainerRow(opponentRes);
+    // Setup battle state
+    final state = BattleGameState(
+      playerTeam: playerTeam,
+      opponentTeam: opponentTeam,
+    );
+    controller = PokeBattleController(gameState: state);
+    // Randomly select an arena type
+    final rand = arenaTypes..shuffle();
+    selectedArena = rand.first;
+    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
+    setState(() { isLoading = false; });
+  }
+
+  Future<List<Pokemon_mcts>> _fetchTeamFromTrainerRow(Map trainerRow) async {
+    final supabase = Supabase.instance.client;
+    List<Pokemon_mcts> team = [];
+    for (int i = 1; i <= 6; i++) {
+      final slotKey = 'pokemon_slot_$i';
+      final pokeId = trainerRow[slotKey];
+      if (pokeId == null) continue;
+      final pokeRes = await supabase
+        .from('pokemon_table')
+        .select()
+        .eq('pokemon_id', pokeId)
+        .maybeSingle(); // safer than .single()
+      if (pokeRes == null) continue;
+      // Fetch abilities
+      List<Ability_mcts> abilities = [];
+      for (int j = 1; j <= 4; j++) {
+        final abKey = 'ability$j';
+        final abId = pokeRes[abKey];
+        if (abId == null) continue;
+        final abRes = await supabase
+          .from('abilities_table')
+          .select()
+          .eq('ability_id', abId)
+          .maybeSingle(); // safer than .single()
+        if (abRes == null) continue;
+        abilities.add(Ability_mcts(
+          name: abRes['ability_name'],
+          type: abRes['type'],
+          maxUses: abRes['uses'],
+          hitRate: abRes['hitrate'],
+          value: abRes['value'],
+        ));
+      }
+      team.add(Pokemon_mcts(
+        pokemonName: pokeRes['pokemon_name'],
+        nickname: pokeRes['nickname'],
+        type: pokeRes['type'],
+        level: pokeRes['level'],
+        attack: pokeRes['attack'],
+        maxHealth: pokeRes['health'],
+        abilities: abilities,
+      ));
+    }
+    return team;
+  }
 
   String getEffectivenessText(double multiplier) {
     if (multiplier >= 2.0) return "It's super effective!";
@@ -45,190 +159,196 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
 
 
-  @override
-  void initState() {
-    super.initState();
-    playBattleMusic();
-    isMusicPlaying = true;
-
-    final squirtle = Pokemon_mcts(
-      pokemonName: "Squirtle",
-      nickname: "Bubbles",
-      type: "Water",
-      level: 5,
-      attack: 10,
-      maxHealth: 35,
-      abilities: [
-        Ability_mcts(name: "Water Gun", type: "Water", maxUses: 10, hitRate: 90, value: 12),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Bubble", type: "Water", maxUses: 10, hitRate: 95, value: 10),
-        Ability_mcts(name: "Withdraw", type: "Water", maxUses: 10, hitRate: 100, value: 0),
-      ],
+  Future<void> _handleBattleEnd() async {
+    if (hasHandledBattleEnd) return;
+    hasHandledBattleEnd = true;
+    final supabase = Supabase.instance.client;
+    final isWin = controller.getWinner() == 1;
+    final isLoss = controller.getWinner() == -1;
+    if (!isWin && !isLoss) return;
+    final trainerRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', widget.trainerId)
+      .maybeSingle();
+    if (trainerRes == null) return;
+    // Use names assigned in _initTeams
+    winnerTrainerName = isWin ? (playerName ?? 'You') : (opponentName ?? 'Opponent');
+    int wins = trainerRes['wins'] ?? 0;
+    int losses = trainerRes['losses'] ?? 0;
+    int xp = trainerRes['experience_points'] ?? 0;
+    int level = trainerRes['level'] ?? 1;
+    int gainedXp = isWin ? 100 : 50;
+    // Use battle context scaler (1.1) and base (100)
+    final trainerXpResult = calculateXpAndLevel(
+      currentXp: xp,
+      currentLevel: level,
+      xpChange: gainedXp,
+      scaler: 1.1,
+      base: 100,
     );
-
-    final bulbasaur = Pokemon_mcts(
-      pokemonName: "Bulbasaur",
-      nickname: "Leafy",
-      type: "Grass",
-      level: 5,
-      attack: 9,
-      maxHealth: 38,
-      abilities: [
-        Ability_mcts(name: "Vine Whip", type: "Grass", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Leech Seed", type: "Grass", maxUses: 10, hitRate: 90, value: 8),
-      ],
-    );
-
-    final pikachu = Pokemon_mcts(
-      pokemonName: "Pikachu",
-      nickname: "Zappy",
-      type: "Electric",
-      level: 5,
-      attack: 11,
-      maxHealth: 32,
-      abilities: [
-        Ability_mcts(name: "Thunder Shock", type: "Electric", maxUses: 10, hitRate: 90, value: 14),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Tail Whip", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Electro Ball", type: "Electric", maxUses: 10, hitRate: 90, value: 16),
-      ],
-    );
-
-    final charmander = Pokemon_mcts(
-      pokemonName: "Charmander",
-      nickname: "Flamey",
-      type: "Fire",
-      level: 5,
-      attack: 12,
-      maxHealth: 33,
-      abilities: [
-        Ability_mcts(name: "Ember", type: "Fire", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Scratch", type: "Normal", maxUses: 15, hitRate: 100, value: 9),
-        Ability_mcts(name: "Growl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Dragon Breath", type: "Dragon", maxUses: 10, hitRate: 90, value: 15),
-      ],
-    );
-
-    final pidgey = Pokemon_mcts(
-      pokemonName: "Pidgey",
-      nickname: "Wings",
-      type: "Normal",
-      level: 5,
-      attack: 8,
-      maxHealth: 30,
-      abilities: [
-        Ability_mcts(name: "Gust", type: "Normal", maxUses: 15, hitRate: 95, value: 11),
-        Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Wing Attack", type: "Flying", maxUses: 10, hitRate: 95, value: 13),
-      ],
-    );
-
-    final geodude = Pokemon_mcts(
-      pokemonName: "Geodude",
-      nickname: "Rocky",
-      type: "Rock",
-      level: 5,
-      attack: 13,
-      maxHealth: 40,
-      abilities: [
-        Ability_mcts(name: "Rock Throw", type: "Rock", maxUses: 10, hitRate: 90, value: 15),
-        Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Magnitude", type: "Ground", maxUses: 10, hitRate: 90, value: 17),
-      ],
-    );
-
-    // Add 3 more Pokémon for each team
-    final eevee = Pokemon_mcts(
-      pokemonName: "Eevee",
-      nickname: "Fuzzy",
-      type: "Normal",
-      level: 5,
-      attack: 10,
-      maxHealth: 34,
-      abilities: [
-        Ability_mcts(name: "Tackle", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Quick Attack", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Sand Attack", type: "Ground", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Swift", type: "Normal", maxUses: 10, hitRate: 100, value: 12),
-      ],
-    );
-    final jigglypuff = Pokemon_mcts(
-      pokemonName: "Jigglypuff",
-      nickname: "Puffy",
-      type: "Fairy",
-      level: 5,
-      attack: 8,
-      maxHealth: 38,
-      abilities: [
-        Ability_mcts(name: "Sing", type: "Normal", maxUses: 10, hitRate: 80, value: 0),
-        Ability_mcts(name: "Pound", type: "Normal", maxUses: 15, hitRate: 100, value: 10),
-        Ability_mcts(name: "Defense Curl", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Disarming Voice", type: "Fairy", maxUses: 10, hitRate: 100, value: 13),
-      ],
-    );
-    final machop = Pokemon_mcts(
-      pokemonName: "Machop",
-      nickname: "Muscle",
-      type: "Fighting",
-      level: 5,
-      attack: 13,
-      maxHealth: 36,
-      abilities: [
-        Ability_mcts(name: "Karate Chop", type: "Fighting", maxUses: 10, hitRate: 95, value: 14),
-        Ability_mcts(name: "Low Kick", type: "Fighting", maxUses: 10, hitRate: 90, value: 13),
-        Ability_mcts(name: "Leer", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-        Ability_mcts(name: "Focus Energy", type: "Normal", maxUses: 10, hitRate: 100, value: 0),
-      ],
-    );
-
-    final playerTeam = [squirtle, bulbasaur, pikachu, eevee, jigglypuff, machop];
-    final opponentTeam = [charmander, pidgey, geodude, eevee, jigglypuff, machop];
-
-    final state = BattleGameState(
-      playerTeam: playerTeam,
-      opponentTeam: opponentTeam,
-    );
-
-    controller = PokeBattleController(gameState: state);
-
-    // Randomly select an arena type
-    final rand = arenaTypes..shuffle();
-    selectedArena = rand.first;
-    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
-  }
-
-  Future<void> playBattleMusic() async {
-    await MusicService().stopMusic();
-    await MusicService().playMusic('music/battle_music.mp3');
-  }
-
-
-  void onPlayerAction(String action) {
-    if (isAnimating || controller.isBattleOver) return;
-    playTurnAnimationSequence(action);
-  }
-
-  void toggleMusic() async {
-    if (isMusicPlaying) {
-      await MusicService().stopMusic();
-    } else {
-      await MusicService().playMusic('music/battle_music.mp3');
+    xp = trainerXpResult.newXp;
+    level = trainerXpResult.newLevel;
+    bool trainerLeveledUp = trainerXpResult.levelsGained > 0;
+    if (isWin) wins += 1;
+    if (isLoss) losses += 1;
+    await supabase
+      .from('trainer_table')
+      .update({
+        'wins': wins,
+        'losses': losses,
+        'experience_points': xp,
+        'level': level,
+      })
+      .eq('trainer_id', widget.trainerId);
+    List<String> pokemonLevelUps = [];
+    List<Future<void>> abilityDialogs = [];
+    for (int i = 1; i <= 6; i++) {
+      final slotKey = 'pokemon_slot_$i';
+      final pokeId = trainerRes[slotKey];
+      if (pokeId == null) continue;
+      final pokeRes = await supabase
+        .from('pokemon_table')
+        .select()
+        .eq('pokemon_id', pokeId)
+        .maybeSingle();
+      if (pokeRes == null) continue;
+      int pokeXp = pokeRes['experience_points'] ?? 0;
+      int pokeLevel = pokeRes['level'] ?? 1;
+      pokeXp += gainedXp;
+      final pokeXpResult = calculateXpAndLevel(
+        currentXp: pokeXp,
+        currentLevel: pokeLevel,
+        xpChange: 0, // already added gainedXp above
+        scaler: 1.1,
+        base: 100,
+      );
+      if (pokeXpResult.levelsGained > 0) {
+        // Apply stat scaling for each level gained
+        var tempPoke = Pokemon_mcts(
+          pokemonName: pokeRes['pokemon_name'],
+          nickname: pokeRes['nickname'],
+          type: pokeRes['type'],
+          level: pokeLevel,
+          attack: pokeRes['attack'],
+          maxHealth: pokeRes['health'],
+          abilities: [], // Not needed for stat scaling
+        );
+        for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
+          tempPoke = tempPoke.levelUp();
+        }
+        String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
+        pokemonLevelUps.add('$pokeName (LvpokeLevel} → pokeXpResult.newLevel})');
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+            'health': tempPoke.maxHealth,
+            'attack': tempPoke.attack,
+          })
+          .eq('pokemon_id', pokeId);
+      } else {
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+          })
+          .eq('pokemon_id', pokeId);
+      }
+      // Always fetch the latest ability IDs after level up
+      if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
+        final updatedPokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', pokeId)
+          .maybeSingle();
+        List<String> currentAbilityIds = [];
+        if (updatedPokeRes != null) {
+          for (int j = 1; j <= 4; j++) {
+            final abId = updatedPokeRes['ability$j'];
+            if (abId != null) {
+              currentAbilityIds.add(abId.toString());
+            }
+          }
+        }
+        final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
+        if (newAbility != null && mounted) {
+          abilityDialogs.add(Future(() async {
+            await Future.delayed(const Duration(seconds: 2));
+            await offerAbilityDialog(
+              context: context,
+              ability: newAbility,
+              pokeId: pokeId,
+              currentAbilityIds: currentAbilityIds,
+            );
+          }));
+        }
+      }
     }
+    String msg = '';
+    if (trainerLeveledUp) {
+      msg += 'Trainer ${playerName ?? 'You'} leveled up!\n';
+      // Add a random Pokémon to the trainer's team and show dialog
+      final newPokeId = await addRandomPokemonToTrainer(widget.trainerId);
+      if (newPokeId != null) {
+        final pokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', newPokeId)
+          .maybeSingle();
+        if (pokeRes != null && mounted) {
+          await showNewPokemonDialog(context, pokeRes['pokemon_name'], pokeRes['type']);
+        }
+      }
+    }
+    if (pokemonLevelUps.isNotEmpty) {
+      msg += 'Pokémon leveled up: ${pokemonLevelUps.join(", ")}!';
+    }
+    if (!mounted) return;
     setState(() {
-      isMusicPlaying = !isMusicPlaying;
+      narration = "${winnerTrainerName ?? 'Trainer'} wins!\n" + msg;
     });
+    if (pokemonLevelUps.isNotEmpty && mounted) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Pokémon Leveled Up!'),
+          content: Text(pokemonLevelUps.join('\n')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+    // Show ability dialogs (sequentially)
+    for (final dialog in abilityDialogs) {
+      await dialog;
+    }
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop('refresh');
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Pokémon Battle")),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final activePlayer = controller.state.getActive(true);
     final activeOpponent = controller.state.getActive(false);
-
+    if (controller.isBattleOver) {
+      _handleBattleEnd();
+    }
     return Scaffold(
       appBar: AppBar(title: const Text("Pokémon Battle")),
       backgroundColor: Colors.redAccent,
@@ -239,8 +359,9 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         child: controller.isBattleOver
             ? Center(
                 child: Text(
+                  // Show winnerTrainerName instead of "You win!"
                   controller.getWinner() == 1
-                      ? "You win!"
+                      ? "${winnerTrainerName ?? 'Trainer'} wins!"
                       : controller.getWinner() == -1
                           ? "You lose!"
                           : "Draw",
@@ -620,7 +741,24 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     }
   }
 
+  void playBattleMusic() {
+    MusicService().playMusic('music/battle_music.mp3');
+  }
 
+  void toggleMusic() {
+    setState(() {
+      isMusicPlaying = !isMusicPlaying;
+      if (isMusicPlaying) {
+        MusicService().playMusic('music/battle_music.mp3');
+      } else {
+        MusicService().stopMusic();
+      }
+    });
+  }
+
+  void onPlayerAction(String action) {
+    playTurnAnimationSequence(action);
+  }
 
 
   @override

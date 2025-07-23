@@ -7,6 +7,7 @@ import '../services/task_details_card.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
 import '../services/music_service.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -348,32 +349,79 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         ),
         Positioned(
           top: 70, // negative value to bleed above the AppBar
-          right: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                trainer?.username ?? '',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  shadows: [Shadow(blurRadius: 4, color: Colors.black45, offset: Offset(1,1))],
-                ),
+          right: 10,
+          child: SizedBox(
+            width: 140,
+            height: 70,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topRight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AutoSizeText(
+                    trainer?.username ?? '',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [Shadow(blurRadius: 4, color: Colors.black45, offset: Offset(1,1))],
+                    ),
+                    maxLines: 1,
+                    minFontSize: 10,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  AutoSizeText(
+                    'Level: ${trainer?.level ?? ''}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      shadows: [Shadow(blurRadius: 4, color: Colors.black26, offset: Offset(1,1))],
+                    ),
+                    maxLines: 1,
+                    minFontSize: 8,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (trainer != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          AutoSizeText(
+                            'XP: ${trainer!.experiencePoints} / ${(100 * trainer!.level * 1.1).toInt()}',
+                            style: TextStyle(color: Colors.lightGreenAccent, fontSize: 14, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            minFontSize: 8,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4),
+                          SizedBox(
+                            width: 125,
+                            child: LinearProgressIndicator(
+                              value: trainer!.experiencePoints / (100 * trainer!.level * 1.1),
+                              minHeight: 7,
+                              backgroundColor: Colors.grey[800],
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
-              Text(
-                'Level: ${trainer?.level ?? ''}',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                  shadows: [Shadow(blurRadius: 4, color: Colors.black26, offset: Offset(1,1))],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 }

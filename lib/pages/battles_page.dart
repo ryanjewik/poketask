@@ -265,6 +265,23 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                                 children: [
                                                   Text('Type: ${poke.type}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                   Text('Level: ${poke.level}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                  // Experience Progress Bar
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text('XP: ${poke.experiencePoints} / ${((100 * poke.level * 1.1).toInt())}', style: TextStyle(color: Colors.lightGreenAccent, fontSize: 16)),
+                                                        SizedBox(height: 4),
+                                                        LinearProgressIndicator(
+                                                          value: poke.experiencePoints / (100 * poke.level * 1.1),
+                                                          minHeight: 8,
+                                                          backgroundColor: Colors.grey[800],
+                                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                   Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                   Text('Health: ${poke.health}', style: TextStyle(color: Colors.white, fontSize: 20)),
                                                   SizedBox(height: 8),
@@ -464,8 +481,12 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                     elevation: 6,
                                     textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                                   ),
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed('/pokebattle');
+                                  onPressed: () async {
+                                    final result = await Navigator.of(context).pushNamed('/pokebattle');
+                                    if (result == 'refresh') {
+                                      await fetchTrainerAndPokemon();
+                                      setState(() {});
+                                    }
                                   },
                                   child: Text('BATTLE', style: TextStyle(letterSpacing: 2)),
                                 ),

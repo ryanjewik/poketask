@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  auto_size_text: ^3.0.0
   flutter:
     sdk: flutter
 
@@ -78,21 +79,19 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/pokemon_names_list.csv
     - assets/background/mobile_grid_background.jpg
     - assets/background/mobile_grid_background_2.jpg
     - assets/background/purple_background.jpg
     - assets/background/zigzag_background.jpg
     - assets/sprites/squirtle.png
-    - assets/sprites/squirtle2.png
     - assets/sprites/charmander.png
-    - assets/sprites/charmander2.png
     - assets/sprites/bulbasaur.png
     - assets/sprites/geodude.png
     - assets/sprites/pikachu.png
     - assets/sprites/onix.png
     - assets/sprites/nidoking.png
     - assets/sprites/wartortle.png
-    - assets/sprites/bulbasaur2.png
     - assets/sprites/graveler.png
     - assets/sprites/golem.png
     - assets/sprites/rhyhorn.png
@@ -108,6 +107,89 @@ flutter:
     - assets/sprites/pidgeot.png
     - assets/sprites/eevee.png
     - assets/sprites/jigglypuff.png
+    - assets/sprites/voltorb.png
+    - assets/sprites/zapdos.png
+    - assets/sprites/raichu.png
+    - assets/sprites/slowbro.png
+    - assets/sprites/spearow.png
+    - assets/sprites/vileplume.png
+    - assets/sprites/tangela.png
+    - assets/sprites/venomoth.png
+    - assets/sprites/staryu.png
+    - assets/sprites/rattata.png
+    - assets/sprites/psyduck.png
+    - assets/sprites/parasect.png
+    - assets/sprites/meowth.png
+    - assets/sprites/golduck.png
+    - assets/sprites/electabuzz.png
+    - assets/sprites/hypno.png
+    - assets/sprites/jynx.png
+    - assets/sprites/jolteon.png
+    - assets/sprites/magnemite.png
+    - assets/sprites/mewtwo.png
+    - assets/sprites/magikarp.png
+    - assets/sprites/alakazam.png
+    - assets/sprites/gyrados.png
+    - assets/sprites/kakuna.png
+    - assets/sprites/caterpie.png
+    - assets/sprites/metapod.png
+    - assets/sprites/weedle.png
+    - assets/sprites/beedrill.png
+    - assets/sprites/fearow.png
+    - assets/sprites/arbok.png
+    - assets/sprites/ekans.png
+    - assets/sprites/raticate.png
+    - assets/sprites/sandshrew.png
+    - assets/sprites/nidoran.png
+    - assets/sprites/nidorino.png
+    - assets/sprites/gloom.png
+    - assets/sprites/oddish.png
+    - assets/sprites/machoke.png
+    - assets/sprites/machamp.png
+    - assets/sprites/poliwag.png
+    - assets/sprites/poliwhirl.png
+    - assets/sprites/poliwrath.png
+    - assets/sprites/diglett.png
+    - assets/sprites/dugtrio.png
+    - assets/sprites/abra.png
+    - assets/sprites/kadabra.png
+    - assets/sprites/slowpoke.png
+    - assets/sprites/magnetron.png
+    - assets/sprites/exeggcute.png
+    - assets/sprites/exeggutor.png
+    - assets/sprites/cubone.png
+    - assets/sprites/marowak.png
+    - assets/sprites/victreebel.png
+    - assets/sprites/bellsprout.png
+    - assets/sprites/weepinbell.png
+    - assets/sprites/horsea.png
+    - assets/sprites/seadra.png
+    - assets/sprites/lapras.png
+    - assets/sprites/dragonite.png
+    - assets/sprites/dragonair.png
+    - assets/sprites/dratini.png
+    - assets/sprites/magmar.png
+    - assets/sprites/gastly.png
+    - assets/sprites/haunter.png
+    - assets/sprites/gengar.png
+    - assets/sprites/scyther.png
+    - assets/sprites/tentacool.png
+    - assets/sprites/tentacruel.png
+    - assets/sprites/farfetchd.png
+    - assets/sprites/flareon.png
+    - assets/sprites/vaporeon.png
+    - assets/sprites/snorlax.png
+    - assets/sprites/porygon.png
+    - assets/sprites/articuno.png
+    - assets/sprites/moltres.png
+    - assets/sprites/starmie.png
+    - assets/sprites/rhydon.png
+    - assets/sprites/electrode.png
+    - assets/sprites/drowzee.png
+    - assets/sprites/venonat.png
+    - assets/sprites/mew.png
+    - assets/sprites/aerodactyl.png
+    - assets/sprites/persian.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg

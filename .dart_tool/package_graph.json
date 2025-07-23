@@ -9,6 +9,7 @@
       "dependencies": [
         "animated_text_kit",
         "audioplayers",
+        "auto_size_text",
         "cupertino_icons",
         "flutter",
         "flutter_colorpicker",
@@ -155,6 +156,13 @@
         "meta",
         "sky_engine",
         "vector_math"
+      ]
+    },
+    {
+      "name": "auto_size_text",
+      "version": "3.0.0",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

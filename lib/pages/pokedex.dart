@@ -141,9 +141,54 @@ class _PokedexPageState extends State<PokedexPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    displayPokemon.nickname,
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          displayPokemon.nickname,
+                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.edit, size: 20),
+                                        tooltip: 'Change Nickname',
+                                        onPressed: () async {
+                                          final controller = TextEditingController(text: displayPokemon.nickname);
+                                          final newNickname = await showDialog<String>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text('Change Nickname'),
+                                              content: TextField(
+                                                controller: controller,
+                                                decoration: InputDecoration(labelText: 'New Nickname'),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(),
+                                                  child: Text('Cancel'),
+                                                ),
+                                                ElevatedButton(
+                                                  onPressed: () => Navigator.of(context).pop(controller.text),
+                                                  child: Text('Save'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          if (newNickname != null && newNickname.trim().isNotEmpty && newNickname != displayPokemon.nickname) {
+                                            await Supabase.instance.client
+                                                .from('pokemon_table')
+                                                .update({'nickname': newNickname.trim()})
+                                                .eq('pokemon_id', displayPokemon.pokemonId);
+                                            // Refresh the Pokémon list
+                                            await fetchPokemon(widget.trainerId);
+                                            setState(() {
+                                              selectedPokemon = pokemonList.firstWhere((p) => p.pokemonId == displayPokemon.pokemonId, orElse: () => displayPokemon);
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ],
                                   ),
                                   SizedBox(height: 2),
                                   Text('Level: ${displayPokemon.level}', style: TextStyle(fontSize: 13)),

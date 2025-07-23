@@ -75,7 +75,7 @@ class _favPokemonPageState extends State<favPokemonPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/background/grid_background.jpg'),
+            image: AssetImage('assets/background/mobile_grid_background.jpg'),
             fit: BoxFit.cover,
           ),
         ),
