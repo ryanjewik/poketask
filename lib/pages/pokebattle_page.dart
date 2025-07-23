@@ -238,7 +238,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
           tempPoke = tempPoke.levelUp();
         }
         String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
-        pokemonLevelUps.add('$pokeName (Lv pokeLevel} → pokeXpResult.newLevel})');
+        pokemonLevelUps.add('$pokeName (LvpokeLevel} → pokeXpResult.newLevel})');
         await supabase
           .from('pokemon_table')
           .update({
