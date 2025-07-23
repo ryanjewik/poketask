@@ -6,6 +6,8 @@ import '../models/ability_mcts.dart';
 import '../mcts/mcts_search.dart'; // For direct MCTS call
 import 'package:animated_text_kit/animated_text_kit.dart';
 import '../services/music_service.dart';
+import '../services/xp_utils.dart';
+import '../services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 
@@ -38,9 +40,20 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
   bool isLoading = true;
 
+  String? winnerTrainerName;
+
+  bool hasHandledBattleEnd = false;
+
+  String? playerTrainerName;
+  String? opponentTrainerName;
+  String? playerName;
+  String? opponentName;
+
   @override
   void initState() {
     super.initState();
+    // Stop menu music before starting battle music
+    MusicService().stopMusic();
     playBattleMusic();
     isMusicPlaying = true;
     _initTeams();
@@ -59,12 +72,14 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       setState(() { narration = "Trainer not found."; isLoading = false; });
       return;
     }
+    playerTrainerName = trainerRes['username'] ?? 'You';
+    playerName = playerTrainerName;
     // Get player team
     final playerTeam = await _fetchTeamFromTrainerRow(trainerRes);
     // Get random opponent trainer
     final trainers = await supabase
       .from('trainer_table')
-      .select('trainer_id');
+      .select('trainer_id,username');
     final opponentIds = trainers.where((t) => t['trainer_id'] != widget.trainerId).toList();
     opponentIds.shuffle();
     final opponentId = opponentIds.isNotEmpty ? opponentIds.first['trainer_id'] : widget.trainerId;
@@ -73,6 +88,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       .select()
       .eq('trainer_id', opponentId)
       .single();
+    opponentTrainerName = opponentRes['username'] ?? 'Opponent';
+    opponentName = opponentTrainerName;
     final opponentTeam = await _fetchTeamFromTrainerRow(opponentRes);
     // Setup battle state
     final state = BattleGameState(
@@ -142,6 +159,148 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
 
 
+  Future<void> _handleBattleEnd() async {
+    if (hasHandledBattleEnd) return;
+    hasHandledBattleEnd = true;
+    final supabase = Supabase.instance.client;
+    final isWin = controller.getWinner() == 1;
+    final isLoss = controller.getWinner() == -1;
+    if (!isWin && !isLoss) return;
+    final trainerRes = await supabase
+      .from('trainer_table')
+      .select()
+      .eq('trainer_id', widget.trainerId)
+      .maybeSingle();
+    if (trainerRes == null) return;
+    // Use names assigned in _initTeams
+    winnerTrainerName = isWin ? (playerName ?? 'You') : (opponentName ?? 'Opponent');
+    int wins = trainerRes['wins'] ?? 0;
+    int losses = trainerRes['losses'] ?? 0;
+    int xp = trainerRes['experience_points'] ?? 0;
+    int level = trainerRes['level'] ?? 1;
+    int gainedXp = isWin ? 100 : 50;
+    // Use battle context scaler (1.1) and base (100)
+    final trainerXpResult = calculateXpAndLevel(
+      currentXp: xp,
+      currentLevel: level,
+      xpChange: gainedXp,
+      scaler: 1.1,
+      base: 100,
+    );
+    xp = trainerXpResult.newXp;
+    level = trainerXpResult.newLevel;
+    bool trainerLeveledUp = trainerXpResult.levelsGained > 0;
+    if (isWin) wins += 1;
+    if (isLoss) losses += 1;
+    await supabase
+      .from('trainer_table')
+      .update({
+        'wins': wins,
+        'losses': losses,
+        'experience_points': xp,
+        'level': level,
+      })
+      .eq('trainer_id', widget.trainerId);
+    List<String> pokemonLevelUps = [];
+    List<Future<void>> abilityDialogs = [];
+    for (int i = 1; i <= 6; i++) {
+      final slotKey = 'pokemon_slot_$i';
+      final pokeId = trainerRes[slotKey];
+      if (pokeId == null) continue;
+      final pokeRes = await supabase
+        .from('pokemon_table')
+        .select()
+        .eq('pokemon_id', pokeId)
+        .maybeSingle();
+      if (pokeRes == null) continue;
+      int pokeXp = pokeRes['experience_points'] ?? 0;
+      int pokeLevel = pokeRes['level'] ?? 1;
+      pokeXp += gainedXp;
+      final pokeXpResult = calculateXpAndLevel(
+        currentXp: pokeXp,
+        currentLevel: pokeLevel,
+        xpChange: 0, // already added gainedXp above
+        scaler: 1.1,
+        base: 100,
+      );
+      if (pokeXpResult.levelsGained > 0) {
+        String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
+        pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
+      }
+      await supabase
+        .from('pokemon_table')
+        .update({
+          'experience_points': pokeXpResult.newXp,
+          'level': pokeXpResult.newLevel,
+        })
+        .eq('pokemon_id', pokeId);
+      // Always fetch the latest ability IDs after level up
+      if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
+        final updatedPokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', pokeId)
+          .maybeSingle();
+        List<String> currentAbilityIds = [];
+        if (updatedPokeRes != null) {
+          for (int j = 1; j <= 4; j++) {
+            final abId = updatedPokeRes['ability$j'];
+            if (abId != null) {
+              currentAbilityIds.add(abId.toString());
+            }
+          }
+        }
+        final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
+        if (newAbility != null && mounted) {
+          abilityDialogs.add(Future(() async {
+            await Future.delayed(const Duration(seconds: 2));
+            await offerAbilityDialog(
+              context: context,
+              ability: newAbility,
+              pokeId: pokeId,
+              currentAbilityIds: currentAbilityIds,
+            );
+          }));
+        }
+      }
+    }
+    String msg = '';
+    if (trainerLeveledUp) {
+      msg += 'Trainer ${playerName ?? 'You'} leveled up!\n';
+    }
+    if (pokemonLevelUps.isNotEmpty) {
+      msg += 'Pokémon leveled up: ${pokemonLevelUps.join(", ")}!';
+    }
+    if (!mounted) return;
+    setState(() {
+      narration = "${winnerTrainerName ?? 'Trainer'} wins!\n" + msg;
+    });
+    if (pokemonLevelUps.isNotEmpty && mounted) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Pokémon Leveled Up!'),
+          content: Text(pokemonLevelUps.join('\n')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+    // Show ability dialogs (sequentially)
+    for (final dialog in abilityDialogs) {
+      await dialog;
+    }
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop('refresh');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -152,7 +311,9 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     }
     final activePlayer = controller.state.getActive(true);
     final activeOpponent = controller.state.getActive(false);
-
+    if (controller.isBattleOver) {
+      _handleBattleEnd();
+    }
     return Scaffold(
       appBar: AppBar(title: const Text("Pokémon Battle")),
       backgroundColor: Colors.redAccent,
@@ -163,8 +324,9 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         child: controller.isBattleOver
             ? Center(
                 child: Text(
+                  // Show winnerTrainerName instead of "You win!"
                   controller.getWinner() == 1
-                      ? "You win!"
+                      ? "${winnerTrainerName ?? 'Trainer'} wins!"
                       : controller.getWinner() == -1
                           ? "You lose!"
                           : "Draw",

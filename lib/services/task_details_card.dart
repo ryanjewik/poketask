@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:poketask/services/xp_utils.dart';
+import 'package:poketask/services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/task.dart';
 
@@ -40,28 +42,118 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         })
         .eq('task_id', widget.task.taskId);
 
-    // Update completed_tasks for the trainer
     final trainerId = widget.task.trainerId;
     if (trainerId != null && trainerId.isNotEmpty) {
-      // Get current completed_tasks value
       final trainerResponse = await supabase
         .from('trainer_table')
-        .select('completed_tasks')
+        .select()
         .eq('trainer_id', trainerId)
         .maybeSingle();
       int completedTasks = (trainerResponse != null && trainerResponse['completed_tasks'] != null)
         ? trainerResponse['completed_tasks'] as int
         : 0;
-      // Increment or decrement
       final newCompletedTasks = completed
         ? completedTasks + 1
         : (completedTasks > 0 ? completedTasks - 1 : 0);
+      int trainerXp = trainerResponse?['experience_points'] ?? 0;
+      int trainerLevel = trainerResponse?['level'] ?? 1;
+      int xpChange = completed ? 25 : -25;
+      final trainerXpResult = calculateXpAndLevel(
+        currentXp: trainerXp,
+        currentLevel: trainerLevel,
+        xpChange: xpChange,
+        scaler: 1.1,
+        base: 100,
+      );
+      trainerXp = trainerXpResult.newXp;
+      trainerLevel = trainerXpResult.newLevel;
+      bool trainerLeveledUp = trainerXpResult.levelsGained > 0;
       await supabase
         .from('trainer_table')
-        .update({'completed_tasks': newCompletedTasks})
+        .update({
+          'completed_tasks': newCompletedTasks,
+          'experience_points': trainerXp,
+          'level': trainerLevel,
+        })
         .eq('trainer_id', trainerId);
+      // --- Pokémon XP/Level/Ability logic ---
+      List<String> pokemonLevelUps = [];
+      List<Future<void>> abilityDialogs = [];
+      for (int i = 1; i <= 6; i++) {
+        final slotKey = 'pokemon_slot_$i';
+        final pokeId = trainerResponse?[slotKey];
+        if (pokeId == null) continue;
+        final pokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', pokeId)
+          .maybeSingle();
+        if (pokeRes == null) continue;
+        int pokeXp = pokeRes['experience_points'] ?? 0;
+        int pokeLevel = pokeRes['level'] ?? 1;
+        final pokeXpResult = calculateXpAndLevel(
+          currentXp: pokeXp,
+          currentLevel: pokeLevel,
+          xpChange: xpChange,
+          scaler: 1.1,
+          base: 100,
+        );
+        // Only add to level up list if level increased
+        if (pokeXpResult.levelsGained > 0) {
+          String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
+          pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
+        }
+        // Update DB with new XP/level
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+          })
+          .eq('pokemon_id', pokeId);
+        // Offer new ability if new level is a multiple of 5 and at least one level was gained
+        if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
+          List<String> currentAbilityIds = [];
+          for (int j = 1; j <= 4; j++) {
+            final abId = pokeRes['ability$j'];
+            if (abId != null) currentAbilityIds.add(abId.toString());
+          }
+          final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
+          if (newAbility != null && context.mounted) {
+            // Queue the dialog to show after level-up notification
+            abilityDialogs.add(Future(() async {
+              await Future.delayed(const Duration(seconds: 2));
+              await offerAbilityDialog(
+                context: context,
+                ability: newAbility,
+                pokeId: pokeId.toString(),
+                currentAbilityIds: currentAbilityIds,
+              );
+            }));
+          }
+        }
+      }
+      // Show level-up notification if any
+      if (pokemonLevelUps.isNotEmpty && context.mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Pokémon Leveled Up!'),
+            content: Text(pokemonLevelUps.join('\n')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      // Show ability dialogs (sequentially)
+      for (final dialog in abilityDialogs) {
+        await dialog;
+      }
     }
-
     setState(() {
       isCompleted = completed;
       widget.task.isCompleted = completed;

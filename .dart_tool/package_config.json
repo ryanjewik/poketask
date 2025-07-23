@@ -80,6 +80,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "auto_size_text",
+      "rootUri": "file:///C:/Users/Ryan%20Jewik/AppData/Local/Pub/Cache/hosted/pub.dev/auto_size_text-3.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "boolean_selector",
       "rootUri": "file:///C:/Users/Ryan%20Jewik/AppData/Local/Pub/Cache/hosted/pub.dev/boolean_selector-2.1.2",
       "packageUri": "lib/",
