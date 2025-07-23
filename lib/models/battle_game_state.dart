@@ -95,9 +95,9 @@ class BattleGameState {
     }
 
     final multiplier = _getTypeEffectiveness(move.type, defender.type);
-    int baseDamage = (move.value + attacker.attack * 0.5).toInt();
-    final damage = (baseDamage * multiplier).toInt();
-
+    // New damage formula: (ability value + (pokemon attack * 0.1)) * type multiplier, rounded down
+    final rawDamage = (move.value + (attacker.attack * 0.1)) * multiplier;
+    final damage = rawDamage.floor();
     defender.currentHealth -= damage;
     isPlayerTurn = !isPlayerTurn;
   }

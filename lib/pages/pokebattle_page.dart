@@ -224,16 +224,39 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         base: 100,
       );
       if (pokeXpResult.levelsGained > 0) {
+        // Apply stat scaling for each level gained
+        var tempPoke = Pokemon_mcts(
+          pokemonName: pokeRes['pokemon_name'],
+          nickname: pokeRes['nickname'],
+          type: pokeRes['type'],
+          level: pokeLevel,
+          attack: pokeRes['attack'],
+          maxHealth: pokeRes['health'],
+          abilities: [], // Not needed for stat scaling
+        );
+        for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
+          tempPoke = tempPoke.levelUp();
+        }
         String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
-        pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
+        pokemonLevelUps.add('$pokeName (Lv pokeLevel} → pokeXpResult.newLevel})');
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+            'health': tempPoke.maxHealth,
+            'attack': tempPoke.attack,
+          })
+          .eq('pokemon_id', pokeId);
+      } else {
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+          })
+          .eq('pokemon_id', pokeId);
       }
-      await supabase
-        .from('pokemon_table')
-        .update({
-          'experience_points': pokeXpResult.newXp,
-          'level': pokeXpResult.newLevel,
-        })
-        .eq('pokemon_id', pokeId);
       // Always fetch the latest ability IDs after level up
       if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
         final updatedPokeRes = await supabase
@@ -267,6 +290,18 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     String msg = '';
     if (trainerLeveledUp) {
       msg += 'Trainer ${playerName ?? 'You'} leveled up!\n';
+      // Add a random Pokémon to the trainer's team and show dialog
+      final newPokeId = await addRandomPokemonToTrainer(widget.trainerId);
+      if (newPokeId != null) {
+        final pokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', newPokeId)
+          .maybeSingle();
+        if (pokeRes != null && mounted) {
+          await showNewPokemonDialog(context, pokeRes['pokemon_name'], pokeRes['type']);
+        }
+      }
     }
     if (pokemonLevelUps.isNotEmpty) {
       msg += 'Pokémon leveled up: ${pokemonLevelUps.join(", ")}!';

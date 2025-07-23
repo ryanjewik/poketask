@@ -3,6 +3,7 @@ import 'package:poketask/services/xp_utils.dart';
 import 'package:poketask/services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/task.dart';
+import '../models/pokemon_mcts.dart';
 
 class TaskDetailsCard extends StatefulWidget {
   final Task task;
@@ -76,6 +77,20 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
           'level': trainerLevel,
         })
         .eq('trainer_id', trainerId);
+      // --- Trainer level up: add random Pokémon and show dialog ---
+      if (trainerLeveledUp) {
+        final newPokeId = await addRandomPokemonToTrainer(trainerId);
+        if (newPokeId != null) {
+          final pokeRes = await supabase
+            .from('pokemon_table')
+            .select()
+            .eq('pokemon_id', newPokeId)
+            .maybeSingle();
+          if (pokeRes != null && context.mounted) {
+            await showNewPokemonDialog(context, pokeRes['pokemon_name'], pokeRes['type']);
+          }
+        }
+      }
       // --- Pokémon XP/Level/Ability logic ---
       List<String> pokemonLevelUps = [];
       List<Future<void>> abilityDialogs = [];
@@ -100,17 +115,41 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         );
         // Only add to level up list if level increased
         if (pokeXpResult.levelsGained > 0) {
+          // Apply stat scaling for each level gained
+          var tempPoke = Pokemon_mcts(
+            pokemonName: pokeRes['pokemon_name'],
+            nickname: pokeRes['nickname'],
+            type: pokeRes['type'],
+            level: pokeLevel,
+            attack: pokeRes['attack'],
+            maxHealth: pokeRes['health'],
+            abilities: [], // Not needed for stat scaling
+          );
+          for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
+            tempPoke = tempPoke.levelUp();
+          }
           String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
           pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
+          // Update DB with new XP/level and new stats
+          await supabase
+            .from('pokemon_table')
+            .update({
+              'experience_points': pokeXpResult.newXp,
+              'level': pokeXpResult.newLevel,
+              'health': tempPoke.maxHealth,
+              'attack': tempPoke.attack,
+            })
+            .eq('pokemon_id', pokeId);
+        } else {
+          // Update DB with new XP/level only
+          await supabase
+            .from('pokemon_table')
+            .update({
+              'experience_points': pokeXpResult.newXp,
+              'level': pokeXpResult.newLevel,
+            })
+            .eq('pokemon_id', pokeId);
         }
-        // Update DB with new XP/level
-        await supabase
-          .from('pokemon_table')
-          .update({
-            'experience_points': pokeXpResult.newXp,
-            'level': pokeXpResult.newLevel,
-          })
-          .eq('pokemon_id', pokeId);
         // Offer new ability if new level is a multiple of 5 and at least one level was gained
         if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
           List<String> currentAbilityIds = [];
@@ -154,6 +193,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         await dialog;
       }
     }
+    if (!mounted) return;
     setState(() {
       isCompleted = completed;
       widget.task.isCompleted = completed;
