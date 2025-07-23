@@ -154,19 +154,39 @@ class _CalendarPageState extends State<CalendarPage> {
                   final newTask = await showModalBottomSheet<Task>(
                     context: context,
                     isScrollControlled: true,
+                    backgroundColor: Colors.transparent, // Make modal background transparent
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                     ),
-                    builder: (modalContext) => Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                        left: 16, right: 16, top: 24),
-                      child: TaskForm(
-                        onSubmit: (task) {
-                          Navigator.of(modalContext).pop(task);
-                        },
-                        trainerId: trainerId,
-                      ),
+                    builder: (modalContext) => LayoutBuilder(
+                      builder: (context, constraints) {
+                        return MediaQuery.removeViewInsets(
+                          removeBottom: true,
+                          context: context,
+                          child: SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: MediaQuery.of(context).size.height * 0.9,
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                ),
+                                padding: EdgeInsets.only(
+                                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                                  left: 16, right: 16, top: 24),
+                                child: TaskForm(
+                                  onSubmit: (task) {
+                                    Navigator.of(modalContext).pop(task);
+                                  },
+                                  trainerId: trainerId,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
                   if (newTask != null) {

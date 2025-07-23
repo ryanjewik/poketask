@@ -1,16 +1,33 @@
 # poketask
 
-A new Flutter project.
 
-## Getting Started
+# 📱 How to Install This Flutter App (APK)
 
-This project is a starting point for a Flutter application.
+This app is distributed as a sideloadable APK for Android devices.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## ✅ Steps to Install
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. **Download the APK**
+   - [Download app-release.apk](https://github.com/ryanjewik/poketask/releases/download/v1.0.1/app-release.apk)
+
+2. **Transfer the APK to your Android device**
+   - You can email it to yourself, use Google Drive, or connect your device via USB.
+
+3. **Enable “Install from Unknown Sources”**
+   - On your phone, go to:
+     ```
+     Settings > Security > Unknown Sources
+     ```
+   - Or, if prompted during installation, allow your browser or file manager to install unknown apps.
+
+4. **Install the APK**
+   - Tap the `app-release.apk` file and follow the prompts.
+
+5. **Done!**
+   - The app is now installed and ready to use 🎉
+
+
+
+
