@@ -142,6 +142,7 @@ class _MyScaffoldState extends State<MyScaffold>
             ClipPath(
               clipper: PokedexClipper(),
               child: AppBar(
+                automaticallyImplyLeading: false,
                 elevation: 0,
                 surfaceTintColor: Colors.transparent,
                 backgroundColor: Theme.of(context).colorScheme.primary,

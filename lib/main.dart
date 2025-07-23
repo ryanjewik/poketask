@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:poketask/pages/battles_page.dart';
 import 'package:poketask/pages/calendar.dart';
+import 'package:poketask/pages/open.dart';
 import 'package:poketask/pages/pokedex.dart';
 import 'package:poketask/pages/taskspage.dart';
 import 'package:poketask/pages/threads_page.dart';
@@ -11,6 +12,10 @@ import 'pages/pokebattle_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import 'services/music_service.dart';
+import 'pages/login_form.dart';
+import 'pages/signup_form.dart';
+import 'pages/fav_pokemon.dart';
+import 'pages/starter_select.dart';
 
 
 final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -58,9 +63,23 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: MyHomePage(title: 'PokeTask Home Page', trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-      initialRoute: 'home',
+      initialRoute: 'open',
+      onGenerateRoute: (settings) {
+        if (settings.name == 'home') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => MyHomePage(
+              title: 'PokeTask Home Page',
+              trainerId: trainerId ?? '',
+            ),
+          );
+        }
+        // fallback to default
+        return null;
+      },
       routes: {
-        'home': (context) => MyHomePage(title: 'PokeTask Home Page', trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
+        'open': (context) => OpenPage(),
         'calendar': (context) => CalendarPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         'tasks': (context) => TasksPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         '/threads': (context) => ThreadsPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
@@ -68,7 +87,9 @@ class MyApp extends StatelessWidget {
         '/pokebattle': (context) => PokeBattlePage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         'pokedex': (context) => PokedexPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         'battles': (context) => BattlesPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-
+        '/login': (context) => LoginFormPage(),
+        '/signup': (context) => SignupFormPage(),
+        '/starter_select': (context) => StarterSelectPage(),
       }
     );
   }
