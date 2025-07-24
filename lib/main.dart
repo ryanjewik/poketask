@@ -30,6 +30,7 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
   // Request notification permissions
+// Replace with your local time zone
   await NotificationService.initialize();
   await NotificationService.requestPermissions();
   // Optional: Run a simple query to test connection

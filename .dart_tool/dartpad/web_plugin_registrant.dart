@@ -9,6 +9,8 @@
 import 'package:app_links_web/app_links_web.dart';
 import 'package:audioplayers_web/audioplayers_web.dart';
 import 'package:flutter_secure_storage_web/flutter_secure_storage_web.dart';
+import 'package:flutter_timezone/flutter_timezone_web.dart';
+import 'package:permission_handler_html/permission_handler_html.dart';
 import 'package:shared_preferences_web/shared_preferences_web.dart';
 import 'package:url_launcher_web/url_launcher_web.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
@@ -18,6 +20,8 @@ void registerPlugins([final Registrar? pluginRegistrar]) {
   AppLinksPluginWeb.registerWith(registrar);
   AudioplayersPlugin.registerWith(registrar);
   FlutterSecureStorageWeb.registerWith(registrar);
+  FlutterTimezonePlugin.registerWith(registrar);
+  WebPermissionHandler.registerWith(registrar);
   SharedPreferencesPlugin.registerWith(registrar);
   UrlLauncherPlugin.registerWith(registrar);
   registrar.registerMessageHandler();
