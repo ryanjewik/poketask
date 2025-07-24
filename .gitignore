@@ -17,3 +17,6 @@ local.properties
 # Ignore environment variable files
 .env
 app.dill
+
+# FVM Version Cache
+.fvm/

@@ -1,62 +1,60 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzData;
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  // ✅ Define the plugin instance
+  static final FlutterLocalNotificationsPlugin _plugin =
+  FlutterLocalNotificationsPlugin();
 
+  // ✅ Initialization method
   static Future<void> initialize() async {
-    tz.initializeTimeZones();
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: DarwinInitializationSettings(),
+    tzData.initializeTimeZones();
+
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
     );
-    await _notificationsPlugin.initialize(initializationSettings);
+
+    await _plugin.initialize(initSettings);
   }
 
+  // ✅ Request notification permissions
   static Future<void> requestPermissions() async {
-    final plugin = _notificationsPlugin;
-    // Android: No runtime permission needed for flutter_local_notifications v17.0.0
-    // iOS permission
-    await plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    // macOS permission (if needed)
-    await plugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+    // iOS permissions only; Android handled by OS or use permission_handler if needed
+    await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
       alert: true,
       badge: true,
       sound: true,
     );
   }
 
+  // ✅ Schedule a notification
   static Future<void> scheduleNotification({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledTime,
   }) async {
-    final tz.TZDateTime scheduledDate = tz.TZDateTime.from(scheduledTime, tz.local);
-    await _notificationsPlugin.zonedSchedule(
+    final tz.TZDateTime tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+
+    await _plugin.zonedSchedule(
       id,
       title,
       body,
-      scheduledDate,
+      tzTime,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_channel',
-          'Task Notifications',
-          channelDescription: 'Notifications for scheduled tasks',
-          importance: Importance.max,
-          priority: Priority.high,
+          'main_channel',
+          'Main Channel',
+          channelDescription: 'Main channel notifications',
         ),
-        iOS: DarwinNotificationDetails(),
       ),
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'default_payload',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
