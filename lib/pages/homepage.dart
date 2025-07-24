@@ -276,12 +276,37 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                         color: Colors.white,
                                       ),
                                     ),
-                                    FloatingActionButton(
-                                      mini: true,
-                                      onPressed: toggleMusic,
-                                      backgroundColor: Colors.blueAccent,
-                                      child: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
-                                      tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
+                                    Row(
+                                      children: [
+                                        FloatingActionButton(
+                                          mini: true,
+                                          onPressed: toggleMusic,
+                                          backgroundColor: Colors.blueAccent,
+                                          child: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off),
+                                          tooltip: isMusicPlaying ? 'Pause Music' : 'Play Music',
+                                        ),
+                                        SizedBox(width: 8),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blueAccent,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                            textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                            elevation: 2,
+                                          ),
+                                          onPressed: () async {
+                                            await Supabase.instance.client.auth.signOut();
+                                            if (!mounted) return;
+                                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                                              Navigator.of(context, rootNavigator: true).pushReplacementNamed('/login');
+                                            });
+                                          },
+                                          child: Text('Logout'),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -312,8 +337,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                             if (result == 'delete') {
                                               // Optionally handle delete
                                             }
-                                            await fetchTaskData();
-                                            setState(() {});
+                                            Future.microtask(() async {
+                                              await fetchTaskData();
+                                              if (mounted) setState(() {});
+                                            });
                                           },
                                           child: Container(
                                             height: 50,

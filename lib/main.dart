@@ -16,6 +16,7 @@ import 'pages/login_form.dart';
 import 'pages/signup_form.dart';
 import 'pages/fav_pokemon.dart';
 import 'pages/starter_select.dart';
+import 'pages/splash_page.dart';
 
 
 final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: MyHomePage(title: 'PokeTask Home Page', trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-      initialRoute: 'open',
+      initialRoute: 'splash',
       onGenerateRoute: (settings) {
         if (settings.name == 'home') {
           final args = settings.arguments as Map<String, dynamic>?;
@@ -136,6 +137,7 @@ class MyApp extends StatelessWidget {
         return null;
       },
       routes: {
+        'splash': (context) => SplashPage(),
         'open': (context) => OpenPage(),
         '/login': (context) => LoginFormPage(),
         '/signup': (context) => SignupFormPage(),
