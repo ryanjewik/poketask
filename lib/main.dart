@@ -17,6 +17,7 @@ import 'pages/signup_form.dart';
 import 'pages/fav_pokemon.dart';
 import 'pages/starter_select.dart';
 import 'pages/splash_page.dart';
+import 'services/notification_service.dart';
 
 
 final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -28,6 +29,9 @@ Future<void> main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+  // Request notification permissions
+  await NotificationService.initialize();
+  await NotificationService.requestPermissions();
   // Optional: Run a simple query to test connection
   final supabase = Supabase.instance.client;
   runApp(MyApp());

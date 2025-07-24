@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/task.dart';
+import '../services/notification_service.dart';
 
 class TaskForm extends StatefulWidget {
   final void Function(Task) onSubmit;
@@ -31,6 +32,7 @@ class _TaskFormState extends State<TaskForm> {
     super.initState();
     _threadId = widget.threadId ?? '';
     _fetchFolders();
+    NotificationService.initialize();
   }
 
   Future<void> _fetchFolders() async {
@@ -178,6 +180,16 @@ class _TaskFormState extends State<TaskForm> {
                         folderId: _selectedFolderId ?? '',
                         isCompleted: false,
                       );
+                      // Schedule notification 1 hour before startDate
+                      final notificationTime = newTask.startDate.subtract(Duration(hours: 1));
+                      if (notificationTime.isAfter(DateTime.now())) {
+                        await NotificationService.scheduleNotification(
+                          id: newTask.taskId.hashCode,
+                          title: 'Upcoming Task',
+                          body: '"${newTask.taskText}" starts in 1 hour!',
+                          scheduledTime: notificationTime,
+                        );
+                      }
                       // Prepare values for insert, using null for empty UUIDs
                       final insertMap = {
                         'task_id': newTask.taskId,
