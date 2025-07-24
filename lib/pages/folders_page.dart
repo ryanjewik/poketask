@@ -400,8 +400,15 @@ class _FoldersPageState extends State<FoldersPage> {
                     },
                   ),
                 ),
+                // Move the Add Task button up using a Spacer and MediaQuery for adaptive padding
+                Spacer(),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.only(
+                    left: 8.0,
+                    right: 8.0,
+                    bottom: MediaQuery.of(context).viewPadding.bottom + 16, // Add extra space above system nav bar
+                    top: 8.0,
+                  ),
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.add_task),
                     label: Text('Add Task'),

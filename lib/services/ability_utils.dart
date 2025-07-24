@@ -121,30 +121,24 @@ Future<String?> addRandomPokemonToTrainer(String trainerId, {BuildContext? conte
   final rng = Random();
   List chosenAbilities = [];
   final usedAbilityIds = <dynamic>{};
-  if (typeAbilities.length >= 2) {
-    typeAbilities.shuffle(rng);
-    chosenAbilities.addAll(typeAbilities.take(2));
-    usedAbilityIds.addAll(chosenAbilities.map((a) => a['ability_id']));
-    // Fill the rest from all abilities, no repeats
-    final remainingPool = [
-      ...typeAbilities.where((a) => !usedAbilityIds.contains(a['ability_id'])),
-      ...otherAbilities.where((a) => !usedAbilityIds.contains(a['ability_id']))
-    ];
-    remainingPool.shuffle(rng);
-    chosenAbilities.addAll(remainingPool.take(2));
-  } else if (typeAbilities.length == 1) {
-    chosenAbilities.add(typeAbilities.first);
-    usedAbilityIds.add(typeAbilities.first['ability_id']);
-    // Fill the rest from other abilities, no repeats
-    final remainingPool = [
-      ...otherAbilities.where((a) => !usedAbilityIds.contains(a['ability_id']))
-    ];
-    remainingPool.shuffle(rng);
-    chosenAbilities.addAll(remainingPool.take(3));
-  } else {
-    // No abilities of this type, just pick 4 unique abilities
-    abilities.shuffle(rng);
-    chosenAbilities = abilities.take(4).toList();
+
+  // Ensure at least two unique type-matching abilities if possible
+  typeAbilities.shuffle(rng);
+  for (var ab in typeAbilities) {
+    if (chosenAbilities.length < 2 && !usedAbilityIds.contains(ab['ability_id'])) {
+      chosenAbilities.add(ab);
+      usedAbilityIds.add(ab['ability_id']);
+    }
+  }
+  // If not enough type-matching, fill with other types, still unique
+  final allAbilities = [...typeAbilities, ...otherAbilities];
+  allAbilities.shuffle(rng);
+  for (var ab in allAbilities) {
+    if (chosenAbilities.length >= 4) break;
+    if (!usedAbilityIds.contains(ab['ability_id'])) {
+      chosenAbilities.add(ab);
+      usedAbilityIds.add(ab['ability_id']);
+    }
   }
   // Defensive: if not enough, fill with empty maps
   while (chosenAbilities.length < 4) {

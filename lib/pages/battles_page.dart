@@ -614,7 +614,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                               padding: EdgeInsets.only(top: 5), // Increased padding above the button
                               child: SizedBox(
                                 width: 220,
-                                height: 56,
+                                height: 44,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.redAccent,
@@ -642,7 +642,7 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                         ),
                 ),
                 Padding(
-                  padding: EdgeInsets.zero, // no margin above/below
+                  padding: EdgeInsets.only(bottom: 0), // Minimal padding
                   child: ToggleButtons(
                     borderRadius: BorderRadius.circular(8),
                     selectedColor: Colors.white,
@@ -657,11 +657,11 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                     constraints: BoxConstraints(minWidth: 100, minHeight: 20),
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0), // minimal vertical padding
+                        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
                         child: Text('Tasks', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0), // minimal vertical padding
+                        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
                         child: Text('Wins', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
@@ -676,10 +676,11 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                         return Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
+                        return Center(child: Text('Error: \\${snapshot.error}'));
                       }
                       final top5 = snapshot.data ?? [];
                       return ListView.separated(
+                        padding: EdgeInsets.zero, // Remove any default ListView padding
                         itemCount: top5.length,
                         separatorBuilder: (context, index) => SizedBox.shrink(),
                         itemBuilder: (context, index) {

@@ -2,15 +2,15 @@ from supabase import create_client, Client
 import psycopg2
 
 # === Step 1: Set Supabase and DB config ===
-SUPABASE_URL = "https://athagvmqliyrwotsnlxt.supabase.co"
-SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0aGFndm1xbGl5cndvdHNubHh0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjU5ODY4MCwiZXhwIjoyMDY4MTc0NjgwfQ.PfMnLigbWBqPK20gfObPuwuheLPloMRlsbWOXcpUAtQ"
+SUPABASE_URL = ""
+SUPABASE_SERVICE_KEY = ""
 
 DB_CONFIG = {
-    "host": "db.athagvmqliyrwotsnlxt.supabase.co",
-    "port": 5432,
-    "dbname": "postgres",
-    "user": "postgres",
-    "password": "Happyrhino8!123"
+    "host": "",
+    "port": 0,
+    "dbname": "",
+    "user": "",
+    "password": ""
 }
 
 # === Step 2: Setup Supabase + DB clients ===
