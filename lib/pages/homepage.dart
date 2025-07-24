@@ -366,6 +366,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                       fontSize: 20,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none, // Remove underline
                       shadows: [Shadow(blurRadius: 4, color: Colors.black45, offset: Offset(1,1))],
                     ),
                     maxLines: 1,
@@ -378,6 +379,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                       fontSize: 16,
                       color: Colors.white70,
                       fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.none,
                       shadows: [Shadow(blurRadius: 4, color: Colors.black26, offset: Offset(1,1))],
                     ),
                     maxLines: 1,
@@ -392,10 +394,16 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                         children: [
                           AutoSizeText(
                             'XP: ${trainer!.experiencePoints} / ${(100 * trainer!.level * 1.1).toInt()}',
-                            style: TextStyle(color: Colors.lightGreenAccent, fontSize: 14, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.lightGreenAccent,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.none,
+                            ),
                             maxLines: 1,
                             minFontSize: 8,
                             overflow: TextOverflow.ellipsis,
+
                           ),
                           SizedBox(height: 4),
                           SizedBox(

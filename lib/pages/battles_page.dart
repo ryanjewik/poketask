@@ -212,263 +212,406 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                       shrinkWrap: true,
                                       physics: NeverScrollableScrollPhysics(),
                                       childAspectRatio: 2.5, // Decrease aspect ratio for taller tiles
-                                      mainAxisSpacing: 1,
-                                      crossAxisSpacing: 1,
-                                      children: trainerPokemons.map((poke) => GestureDetector(
-                                        onTap: () async {
-                                          final slotIds = [
-                                            t.pokemonSlot1,
-                                            t.pokemonSlot2,
-                                            t.pokemonSlot3,
-                                            t.pokemonSlot4,
-                                            t.pokemonSlot5,
-                                            t.pokemonSlot6,
-                                          ];
-                                          int slotIndex = slotIds.indexOf(poke.pokemonId);
-                                          // Fetch ability names from abilities_table
-                                          final supabase = Supabase.instance.client;
-                                          final abilityIds = [poke.ability1, poke.ability2, poke.ability3, poke.ability4];
-                                          List<String> abilityNames = [];
-                                          if (abilityIds.isNotEmpty) {
-                                            final formattedIds = abilityIds.where((id) => id != null && id.toString().isNotEmpty).join(',');
-                                            final abilitiesResponse = await supabase
-                                              .from('abilities_table')
-                                              .select()
-                                              .filter('ability_id', 'in', '($formattedIds)');
-                                            abilityNames = (abilitiesResponse as List).map((a) => a['ability_name']?.toString() ?? '').toList();
-                                          }
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              backgroundColor: Colors.grey[900],
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(24),
-                                                side: BorderSide(color: Colors.amber, width: 3),
-                                              ),
-                                              title: Row(
-                                                children: [
-                                                  Image.asset(
-                                                    'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
-                                                    width: 72,
-                                                    height: 72,
-                                                  ),
-                                                  SizedBox(width: 12),
-                                                  Text(
-                                                    poke.nickname,
-                                                    style: TextStyle(fontSize: 28, color: Colors.amber, fontWeight: FontWeight.bold),
-                                                  ),
-                                                ],
-                                              ),
-                                              content: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Type: ${poke.type}', style: TextStyle(color: Colors.white, fontSize: 20)),
-                                                  Text('Level: ${poke.level}', style: TextStyle(color: Colors.white, fontSize: 20)),
-                                                  // Experience Progress Bar
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text('XP: ${poke.experiencePoints} / ${((100 * poke.level * 1.1).toInt())}', style: TextStyle(color: Colors.lightGreenAccent, fontSize: 16)),
-                                                        SizedBox(height: 4),
-                                                        LinearProgressIndicator(
-                                                          value: poke.experiencePoints / (100 * poke.level * 1.1),
-                                                          minHeight: 8,
-                                                          backgroundColor: Colors.grey[800],
-                                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white, fontSize: 20)),
-                                                  Text('Health: ${poke.health}', style: TextStyle(color: Colors.white, fontSize: 20)),
-                                                  SizedBox(height: 8),
-                                                  Text('Moves:', style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold)),
-                                                  for (int i = 0; i < abilityNames.length; i++)
-                                                    Text('${i + 1}. ${abilityNames[i]}', style: TextStyle(color: Colors.white, fontSize: 20)),
-                                                ],
-                                              ),
-                                              actions: [
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.deepOrange,
-                                                        foregroundColor: Colors.white,
-                                                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                                        textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                      ),
-                                                      onPressed: () async {
-                                                        Navigator.of(context).pop();
-                                                        // Fetch all Pokémon for this trainer
-                                                        final allPokemonResponse = await supabase
-                                                          .from('pokemon_table')
-                                                          .select()
-                                                          .eq('trainer_id', widget.trainerId);
-                                                        final allPokemon = (allPokemonResponse as List).map((p) => Pokemon.fromJson(p)).toList();
-                                                        // Exclude Pokémon already in slots
-                                                        final slotIds = [
-                                                          t.pokemonSlot1,
-                                                          t.pokemonSlot2,
-                                                          t.pokemonSlot3,
-                                                          t.pokemonSlot4,
-                                                          t.pokemonSlot5,
-                                                          t.pokemonSlot6,
-                                                        ];
-                                                        final eligiblePokemon = allPokemon.where((p) => !slotIds.contains(p.pokemonId)).toList();
-                                                        if (eligiblePokemon.isEmpty) {
-                                                          ScaffoldMessenger.of(context).showSnackBar(
-                                                            SnackBar(content: Text('No eligible Pokémon to select.')),
-                                                          );
-                                                          return;
-                                                        }
-                                                        final selected = await showDialog<Pokemon>(
-                                                          context: context,
-                                                          builder: (context) => AlertDialog(
-                                                            backgroundColor: Colors.grey[900],
-                                                            title: Text('Select a Pokémon', style: TextStyle(color: Colors.amber)),
-                                                            content: SizedBox(
-                                                              width: 300,
-                                                              height: 300,
-                                                              child: ListView.builder(
-                                                                itemCount: eligiblePokemon.length,
-                                                                itemBuilder: (context, idx) {
-                                                                  final poke = eligiblePokemon[idx];
-                                                                  return ListTile(
-                                                                    leading: Image.asset(
-                                                                      'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
-                                                                      width: 48,
-                                                                      height: 48,
-                                                                    ),
-                                                                    title: Text(poke.nickname, style: TextStyle(color: Colors.white)),
-                                                                    subtitle: Text('Lv. ${poke.level}'),
-                                                                    onTap: () {
-                                                                      Navigator.of(context).pop(poke);
-                                                                    },
-                                                                  );
-                                                                },
-                                                              ),
-                                                            ),
+                                      mainAxisSpacing: 8, // Add vertical gap between tiles
+                                      crossAxisSpacing: 8, // Add horizontal gap between tiles
+                                      children: List.generate(6, (i) {
+                                        final slotPokemons = [
+                                          t.pokemonSlot1,
+                                          t.pokemonSlot2,
+                                          t.pokemonSlot3,
+                                          t.pokemonSlot4,
+                                          t.pokemonSlot5,
+                                          t.pokemonSlot6,
+                                        ];
+                                        final Pokemon? poke = trainerPokemons.where((p) => p.pokemonId == slotPokemons[i]).isNotEmpty ? trainerPokemons.firstWhere((p) => p.pokemonId == slotPokemons[i]) : null;
+                                        if (poke == null) {
+                                          // Empty tile for null slot
+                                          return GestureDetector(
+                                            onTap: () async {
+                                              // Fetch all Pokémon for this trainer
+                                              final supabase = Supabase.instance.client;
+                                              final allPokemonResponse = await supabase
+                                                .from('pokemon_table')
+                                                .select()
+                                                .eq('trainer_id', widget.trainerId);
+                                              final allPokemon = (allPokemonResponse as List).map((p) => Pokemon.fromJson(p)).toList();
+                                              // Exclude Pokémon already in slots
+                                              final slotIds = [
+                                                t.pokemonSlot1,
+                                                t.pokemonSlot2,
+                                                t.pokemonSlot3,
+                                                t.pokemonSlot4,
+                                                t.pokemonSlot5,
+                                                t.pokemonSlot6,
+                                              ];
+                                              final eligiblePokemon = allPokemon.where((p) => !slotIds.contains(p.pokemonId)).toList();
+                                              if (eligiblePokemon.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('No eligible Pokémon to select.')),
+                                                );
+                                                return;
+                                              }
+                                              final selected = await showDialog<Pokemon>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  backgroundColor: Colors.grey[900],
+                                                  title: Text('Select a Pokémon', style: TextStyle(color: Colors.amber)),
+                                                  content: SizedBox(
+                                                    width: 300,
+                                                    height: 300,
+                                                    child: ListView.builder(
+                                                      itemCount: eligiblePokemon.length,
+                                                      itemBuilder: (context, idx) {
+                                                        final poke = eligiblePokemon[idx];
+                                                        return ListTile(
+                                                          leading: Image.asset(
+                                                            'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
+                                                            width: 48,
+                                                            height: 48,
                                                           ),
+                                                          title: Text(poke.nickname, style: TextStyle(color: Colors.white)),
+                                                          subtitle: Text('Lv. ${poke.level}'),
+                                                          onTap: () {
+                                                            Navigator.of(context).pop(poke);
+                                                          },
                                                         );
-                                                        if (selected != null) {
-                                                          // Update the slot in the database
-                                                          String slotField = '';
-                                                          switch (slotIndex) {
-                                                            case 0:
-                                                              slotField = 'pokemon_slot_1';
-                                                              break;
-                                                            case 1:
-                                                              slotField = 'pokemon_slot_2';
-                                                              break;
-                                                            case 2:
-                                                              slotField = 'pokemon_slot_3';
-                                                              break;
-                                                            case 3:
-                                                              slotField = 'pokemon_slot_4';
-                                                              break;
-                                                            case 4:
-                                                              slotField = 'pokemon_slot_5';
-                                                              break;
-                                                            case 5:
-                                                              slotField = 'pokemon_slot_6';
-                                                              break;
-                                                          }
-                                                          await supabase
-                                                            .from('trainer_table')
-                                                            .update({slotField: selected.pokemonId})
-                                                            .eq('trainer_id', widget.trainerId);
-                                                          // Update local state and refresh grid
-                                                          setState(() {
-                                                            switch (slotIndex) {
-                                                              case 0:
-                                                                t.pokemonSlot1 = selected.pokemonId;
-                                                                break;
-                                                              case 1:
-                                                                t.pokemonSlot2 = selected.pokemonId;
-                                                                break;
-                                                              case 2:
-                                                                t.pokemonSlot3 = selected.pokemonId;
-                                                                break;
-                                                              case 3:
-                                                                t.pokemonSlot4 = selected.pokemonId;
-                                                                break;
-                                                              case 4:
-                                                                t.pokemonSlot5 = selected.pokemonId;
-                                                                break;
-                                                              case 5:
-                                                                t.pokemonSlot6 = selected.pokemonId;
-                                                                break;
-                                                            }
-                                                          });
-                                                          // Optionally, re-fetch Pokémon to update grid
-                                                          await fetchTrainerAndPokemon();
-                                                        }
                                                       },
-                                                      child: Text('Change Pokémon'),
                                                     ),
-                                                    TextButton(
-                                                      onPressed: () => Navigator.of(context).pop(),
-                                                      child: Text('Close', style: TextStyle(color: Colors.redAccent)),
+                                                  ),
+                                                ),
+                                              );
+                                              if (selected != null) {
+                                                // Update the slot in the database
+                                                String slotField = '';
+                                                switch (i) {
+                                                  case 0:
+                                                    slotField = 'pokemon_slot_1';
+                                                    break;
+                                                  case 1:
+                                                    slotField = 'pokemon_slot_2';
+                                                    break;
+                                                  case 2:
+                                                    slotField = 'pokemon_slot_3';
+                                                    break;
+                                                  case 3:
+                                                    slotField = 'pokemon_slot_4';
+                                                    break;
+                                                  case 4:
+                                                    slotField = 'pokemon_slot_5';
+                                                    break;
+                                                  case 5:
+                                                    slotField = 'pokemon_slot_6';
+                                                    break;
+                                                }
+                                                await supabase
+                                                  .from('trainer_table')
+                                                  .update({slotField: selected.pokemonId})
+                                                  .eq('trainer_id', widget.trainerId);
+                                                // Update local state and refresh grid
+                                                setState(() {
+                                                  switch (i) {
+                                                    case 0:
+                                                      t.pokemonSlot1 = selected.pokemonId;
+                                                      break;
+                                                    case 1:
+                                                      t.pokemonSlot2 = selected.pokemonId;
+                                                      break;
+                                                    case 2:
+                                                      t.pokemonSlot3 = selected.pokemonId;
+                                                      break;
+                                                    case 3:
+                                                      t.pokemonSlot4 = selected.pokemonId;
+                                                      break;
+                                                    case 4:
+                                                      t.pokemonSlot5 = selected.pokemonId;
+                                                      break;
+                                                    case 5:
+                                                      t.pokemonSlot6 = selected.pokemonId;
+                                                      break;
+                                                  }
+                                                });
+                                                await fetchTrainerAndPokemon();
+                                              }
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[800],
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(color: Colors.amber, width: 1.5),
+                                              ),
+                                              height: 60,
+                                              child: Center(
+                                                child: Icon(Icons.help_outline, color: Colors.grey[600], size: 32),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            final slotIds = [
+                                              t.pokemonSlot1,
+                                              t.pokemonSlot2,
+                                              t.pokemonSlot3,
+                                              t.pokemonSlot4,
+                                              t.pokemonSlot5,
+                                              t.pokemonSlot6,
+                                            ];
+                                            int slotIndex = slotIds.indexOf(poke.pokemonId);
+                                            // Fetch ability names from abilities_table
+                                            final supabase = Supabase.instance.client;
+                                            final abilityIds = [poke.ability1, poke.ability2, poke.ability3, poke.ability4];
+                                            List<String> abilityNames = [];
+                                            if (abilityIds.isNotEmpty) {
+                                              final formattedIds = abilityIds.where((id) => id != null && id.toString().isNotEmpty).join(',');
+                                              final abilitiesResponse = await supabase
+                                                .from('abilities_table')
+                                                .select()
+                                                .filter('ability_id', 'in', '($formattedIds)');
+                                              abilityNames = (abilitiesResponse as List).map((a) => a['ability_name']?.toString() ?? '').toList();
+                                            }
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                backgroundColor: Colors.grey[900],
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(24),
+                                                  side: BorderSide(color: Colors.amber, width: 3),
+                                                ),
+                                                title: Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
+                                                      width: 72,
+                                                      height: 72,
+                                                    ),
+                                                    SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        poke.nickname,
+                                                        style: TextStyle(fontSize: 28, color: Colors.amber, fontWeight: FontWeight.bold),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        softWrap: false,
+                                                      ),
                                                     ),
                                                   ],
+                                                ),
+                                                content: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('Type: ${poke.type}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                    Text('Level: ${poke.level}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                    // Experience Progress Bar
+                                                    Padding(
+                                                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text('XP: ${poke.experiencePoints} / ${((100 * poke.level * 1.1).toInt())}', style: TextStyle(color: Colors.lightGreenAccent, fontSize: 16)),
+                                                          SizedBox(height: 4),
+                                                          LinearProgressIndicator(
+                                                            value: poke.experiencePoints / (100 * poke.level * 1.1),
+                                                            minHeight: 8,
+                                                            backgroundColor: Colors.grey[800],
+                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Text('Attack: ${poke.attack}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                    Text('Health: ${poke.health}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                    SizedBox(height: 8),
+                                                    Text('Moves:', style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold)),
+                                                    for (int i = 0; i < abilityNames.length; i++)
+                                                      Text('${i + 1}. ${abilityNames[i]}', style: TextStyle(color: Colors.white, fontSize: 20)),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor: Colors.deepOrange,
+                                                          foregroundColor: Colors.white,
+                                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                          textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                        ),
+                                                        onPressed: () async {
+                                                          Navigator.of(context).pop();
+                                                          // Fetch all Pokémon for this trainer
+                                                          final allPokemonResponse = await supabase
+                                                            .from('pokemon_table')
+                                                            .select()
+                                                            .eq('trainer_id', widget.trainerId);
+                                                          final allPokemon = (allPokemonResponse as List).map((p) => Pokemon.fromJson(p)).toList();
+                                                          // Exclude Pokémon already in slots
+                                                          final slotIds = [
+                                                            t.pokemonSlot1,
+                                                            t.pokemonSlot2,
+                                                            t.pokemonSlot3,
+                                                            t.pokemonSlot4,
+                                                            t.pokemonSlot5,
+                                                            t.pokemonSlot6,
+                                                          ];
+                                                          final eligiblePokemon = allPokemon.where((p) => !slotIds.contains(p.pokemonId)).toList();
+                                                          if (eligiblePokemon.isEmpty) {
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(content: Text('No eligible Pokémon to select.')),
+                                                            );
+                                                            return;
+                                                          }
+                                                          final selected = await showDialog<Pokemon>(
+                                                            context: context,
+                                                            builder: (context) => AlertDialog(
+                                                              backgroundColor: Colors.grey[900],
+                                                              title: Text('Select a Pokémon', style: TextStyle(color: Colors.amber)),
+                                                              content: SizedBox(
+                                                                width: 300,
+                                                                height: 300,
+                                                                child: ListView.builder(
+                                                                  itemCount: eligiblePokemon.length,
+                                                                  itemBuilder: (context, idx) {
+                                                                    final poke = eligiblePokemon[idx];
+                                                                    return ListTile(
+                                                                      leading: Image.asset(
+                                                                        'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
+                                                                        width: 48,
+                                                                        height: 48,
+                                                                      ),
+                                                                      title: Text(poke.nickname, style: TextStyle(color: Colors.white)),
+                                                                      subtitle: Text('Lv. ${poke.level}'),
+                                                                      onTap: () {
+                                                                        Navigator.of(context).pop(poke);
+                                                                      },
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                          if (selected != null) {
+                                                            // Update the slot in the database
+                                                            String slotField = '';
+                                                            switch (slotIndex) {
+                                                              case 0:
+                                                                slotField = 'pokemon_slot_1';
+                                                                break;
+                                                              case 1:
+                                                                slotField = 'pokemon_slot_2';
+                                                                break;
+                                                              case 2:
+                                                                slotField = 'pokemon_slot_3';
+                                                                break;
+                                                              case 3:
+                                                                slotField = 'pokemon_slot_4';
+                                                                break;
+                                                              case 4:
+                                                                slotField = 'pokemon_slot_5';
+                                                                break;
+                                                              case 5:
+                                                                slotField = 'pokemon_slot_6';
+                                                                break;
+                                                            }
+                                                            await supabase
+                                                              .from('trainer_table')
+                                                              .update({slotField: selected.pokemonId})
+                                                              .eq('trainer_id', widget.trainerId);
+                                                            // Update local state and refresh grid
+                                                            setState(() {
+                                                              switch (slotIndex) {
+                                                                case 0:
+                                                                  t.pokemonSlot1 = selected.pokemonId;
+                                                                  break;
+                                                                case 1:
+                                                                  t.pokemonSlot2 = selected.pokemonId;
+                                                                  break;
+                                                                case 2:
+                                                                  t.pokemonSlot3 = selected.pokemonId;
+                                                                  break;
+                                                                case 3:
+                                                                  t.pokemonSlot4 = selected.pokemonId;
+                                                                  break;
+                                                                case 4:
+                                                                  t.pokemonSlot5 = selected.pokemonId;
+                                                                  break;
+                                                                case 5:
+                                                                  t.pokemonSlot6 = selected.pokemonId;
+                                                                  break;
+                                                              }
+                                                            });
+                                                            // Optionally, re-fetch Pokémon to update grid
+                                                            await fetchTrainerAndPokemon();
+                                                          }
+                                                        },
+                                                        child: Text('Change Pokémon'),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () => Navigator.of(context).pop(),
+                                                        child: Text('Close', style: TextStyle(color: Colors.redAccent)),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[900]!.withOpacity(0.7), // More transparent background
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.amber, width: 1.5),
+                                            ),
+                                            height: 60,
+                                            child: Row(
+                                              children: [
+                                                SizedBox(width: 8),
+                                                Image.asset(
+                                                  'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
+                                                  width: 48,
+                                                  height: 48,
+                                                ),
+                                                SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        poke.nickname,
+                                                        style: TextStyle(
+                                                          color: Colors.amber,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 2),
+                                                      Text(
+                                                        'Lv. ${poke.level}',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w400,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          margin: EdgeInsets.all(2),
-                                          height: 70,
-                                          constraints: BoxConstraints(minHeight: 50, maxHeight: 70),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.white, width: 2),
-                                            borderRadius: BorderRadius.circular(8),
-                                            color: Colors.black.withAlpha(20),
                                           ),
-                                          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              SizedBox(width: 12),
-                                              Image.asset(
-                                                'assets/sprites/${poke.pokemonName.toLowerCase()}.png',
-                                                width: 36,
-                                                height: 36,
-                                              ),
-                                              SizedBox(width: 8),
-                                              Flexible(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(poke.nickname, style: TextStyle(fontSize: 20, color: Colors.white), overflow: TextOverflow.ellipsis),
-                                                    SizedBox(height: 2),
-                                                    Row(
-                                                      children: [
-                                                        Text('Lv. ${poke.level}', style: TextStyle(fontSize: 14, color: Colors.white)),
-                                                        SizedBox(width: 8),
-                                                        Text(poke.type, style: TextStyle(fontSize: 14, color: Colors.white)),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )).toList(),
+                                        );
+                                      }),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 4), // Increased padding above the button
+                              padding: EdgeInsets.only(top: 5), // Increased padding above the button
                               child: SizedBox(
                                 width: 220,
                                 height: 56,
@@ -482,7 +625,10 @@ class _BattlesPageState extends State<BattlesPage> with TickerProviderStateMixin
                                     textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                                   ),
                                   onPressed: () async {
-                                    final result = await Navigator.of(context).pushNamed('/pokebattle');
+                                    final result = await Navigator.of(context).pushNamed(
+                                      '/pokebattle',
+                                      arguments: {'trainer_id': widget.trainerId},
+                                    );
                                     if (result == 'refresh') {
                                       await fetchTrainerAndPokemon();
                                       setState(() {});

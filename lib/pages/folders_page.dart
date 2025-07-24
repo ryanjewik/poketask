@@ -400,6 +400,31 @@ class _FoldersPageState extends State<FoldersPage> {
                     },
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.add_task),
+                    label: Text('Add Task'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 40),
+                    ),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TaskForm(
+                            trainerId: widget.trainerId,
+                            onSubmit: (task) {
+                              onFolderSelected(expandedFolderId);
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -522,25 +547,6 @@ class _FoldersPageState extends State<FoldersPage> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => TaskForm(
-                trainerId: widget.trainerId,
-                onSubmit: (task) {
-                  // Optionally refresh tasks or folders after adding
-                  onFolderSelected(expandedFolderId);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-          );
-        },
-        icon: Icon(Icons.add_task),
-        label: Text('Add Task'),
-        backgroundColor: Colors.redAccent,
       ),
     );
   }

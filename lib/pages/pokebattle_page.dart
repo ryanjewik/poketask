@@ -20,7 +20,7 @@ class PokeBattlePage extends StatefulWidget {
 }
 
 class _PokeBattlePageState extends State<PokeBattlePage> {
-  late PokeBattleController controller;
+  late PokeBattleController? controller;
   String? lastAiAction;
   bool playerJustAttacked = false;
   bool opponentJustAttacked = false;
@@ -56,6 +56,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     MusicService().stopMusic();
     playBattleMusic();
     isMusicPlaying = true;
+    controller = null;
     _initTeams();
   }
 
@@ -67,7 +68,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       .from('trainer_table')
       .select()
       .eq('trainer_id', widget.trainerId)
-      .single();
+      .maybeSingle(); // safer than .single()
     if (trainerRes == null) {
       setState(() { narration = "Trainer not found."; isLoading = false; });
       return;
@@ -76,6 +77,13 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     playerName = playerTrainerName;
     // Get player team
     final playerTeam = await _fetchTeamFromTrainerRow(trainerRes);
+    if (playerTeam.isEmpty) {
+      setState(() {
+        narration = "You have no Pokémon in your team. Please add Pokémon before battling.";
+        isLoading = false;
+      });
+      return;
+    }
     // Get random opponent trainer
     final trainers = await supabase
       .from('trainer_table')
@@ -87,21 +95,30 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       .from('trainer_table')
       .select()
       .eq('trainer_id', opponentId)
-      .single();
-    opponentTrainerName = opponentRes['username'] ?? 'Opponent';
+      .maybeSingle(); // safer than .single()
+    opponentTrainerName = opponentRes?['username'] ?? 'Opponent';
     opponentName = opponentTrainerName;
-    final opponentTeam = await _fetchTeamFromTrainerRow(opponentRes);
+    final opponentTeam = await _fetchTeamFromTrainerRow(opponentRes ?? {});
+    if (opponentTeam.isEmpty) {
+      setState(() {
+        narration = "Opponent has no Pokémon. Try again later.";
+        isLoading = false;
+      });
+      return;
+    }
     // Setup battle state
     final state = BattleGameState(
       playerTeam: playerTeam,
       opponentTeam: opponentTeam,
     );
-    controller = PokeBattleController(gameState: state);
-    // Randomly select an arena type
-    final rand = arenaTypes..shuffle();
-    selectedArena = rand.first;
-    selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
-    setState(() { isLoading = false; });
+    setState(() {
+      controller = PokeBattleController(gameState: state);
+      // Randomly select an arena type
+      final rand = arenaTypes..shuffle();
+      selectedArena = rand.first;
+      selectedArenaText = selectedArena[0].toUpperCase() + selectedArena.substring(1);
+      isLoading = false;
+    });
   }
 
   Future<List<Pokemon_mcts>> _fetchTeamFromTrainerRow(Map trainerRow) async {
@@ -163,8 +180,8 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     if (hasHandledBattleEnd) return;
     hasHandledBattleEnd = true;
     final supabase = Supabase.instance.client;
-    final isWin = controller.getWinner() == 1;
-    final isLoss = controller.getWinner() == -1;
+    final isWin = controller!.getWinner() == 1;
+    final isLoss = controller!.getWinner() == -1;
     if (!isWin && !isLoss) return;
     final trainerRes = await supabase
       .from('trainer_table')
@@ -338,15 +355,15 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (isLoading || controller == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Pokémon Battle")),
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(child: narration.isNotEmpty ? Text(narration, style: TextStyle(fontSize: 18, color: Colors.red)) : const CircularProgressIndicator()),
       );
     }
-    final activePlayer = controller.state.getActive(true);
-    final activeOpponent = controller.state.getActive(false);
-    if (controller.isBattleOver) {
+    final activePlayer = controller!.state.getActive(true);
+    final activeOpponent = controller!.state.getActive(false);
+    if (controller!.isBattleOver) {
       _handleBattleEnd();
     }
     return Scaffold(
@@ -356,13 +373,13 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         decoration: const BoxDecoration(
           color: Colors.redAccent,
         ),
-        child: controller.isBattleOver
+        child: controller!.isBattleOver
             ? Center(
                 child: Text(
                   // Show winnerTrainerName instead of "You win!"
-                  controller.getWinner() == 1
+                  controller!.getWinner() == 1
                       ? "${winnerTrainerName ?? 'Trainer'} wins!"
-                      : controller.getWinner() == -1
+                      : controller!.getWinner() == -1
                           ? "You lose!"
                           : "Draw",
                   style: const TextStyle(fontSize: 24),
@@ -537,10 +554,10 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
                                       child: Wrap(
                                         spacing: 8,
                                         runSpacing: 8,
-                                        children: controller.getValidActions().where((action) => action.startsWith("move_")).map((action) {
+                                        children: controller!.getValidActions().where((action) => action.startsWith("move_")).map((action) {
                                           final label = _getActionLabel(action);
                                           String usesInfo = "";
-                                          final player = controller.state.getActive(true);
+                                          final player = controller!.state.getActive(true);
                                           final index = int.tryParse(action.split("_")[1]) ?? 0;
                                           if (index >= 0 && index < player.abilities.length) {
                                             final ability = player.abilities[index];
@@ -571,9 +588,9 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
                                         childAspectRatio: 2.8,
                                         mainAxisSpacing: 8,
                                         crossAxisSpacing: 8,
-                                        children: controller.getValidActions().where((action) => action.startsWith("switch_")).map((action) {
+                                        children: controller!.getValidActions().where((action) => action.startsWith("switch_")).map((action) {
                                           final label = _getActionLabel(action);
-                                          final team = controller.state.playerTeam;
+                                          final team = controller!.state.playerTeam;
                                           final index = int.tryParse(action.split("_")[1]) ?? 0;
                                           String hpInfo = "";
                                           if (index >= 0 && index < team.length) {
@@ -605,15 +622,23 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     );
   }
   String _getActionLabel(String action) {
-    final player = controller.state.getActive(true);
-    final team = controller.state.playerTeam;
+    final player = controller!.state.getActive(true);
+    final team = controller!.state.playerTeam;
 
     if (action.startsWith("move_")) {
       final index = int.tryParse(action.split("_")[1]) ?? 0;
-      return player.abilities[index].name;
+      if (index >= 0 && index < player.abilities.length) {
+        return player.abilities[index].name;
+      } else {
+        return "Unknown Move";
+      }
     } else if (action.startsWith("switch_")) {
       final index = int.tryParse(action.split("_")[1]) ?? 0;
-      return team[index].nickname;
+      if (index >= 0 && index < team.length) {
+        return team[index].nickname;
+      } else {
+        return "Unknown Switch";
+      }
     }
 
     return action;
@@ -686,7 +711,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   String getAbilityName(String action, bool isPlayer) {
     if (!action.startsWith("move_")) return "";
     final index = int.parse(action.split("_")[1]);
-    final p = controller.state.getActive(isPlayer);
+    final p = controller!.state.getActive(isPlayer);
     return p.abilities[index].name;
   }
 
@@ -703,9 +728,9 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     setState(() {
-      controller.applyPlayerAction(playerAction);
+      controller!.applyPlayerAction(playerAction);
       // After controller.applyPlayerAction(playerAction);
-      final effectiveness = controller.lastEffectiveness;
+      final effectiveness = controller!.lastEffectiveness;
       final feedback = getEffectivenessText(effectiveness);
 
       setState(() {
@@ -714,11 +739,11 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
 
     });
 
-    if (!controller.isBattleOver) {
-      final aiAction = runMCTS(controller.state, 100);
+    if (!controller!.isBattleOver) {
+      final aiAction = runMCTS(controller!.state, 100);
       final isSwitch = aiAction.startsWith("switch_");
       final aiUsed = isSwitch
-          ? "AI switched to ${controller.state.getActive(false).nickname}!"
+          ? "AI switched to ${controller!.state.getActive(false).nickname}!"
           : "Enemy used ${getAbilityName(aiAction, false)}!";
 
       await Future.delayed(const Duration(milliseconds: 300));
@@ -731,7 +756,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       await Future.delayed(const Duration(milliseconds: 500));
 
       setState(() {
-        controller.state.applyAction(aiAction);
+        controller!.state.applyAction(aiAction);
         isAnimating = false;
       });
     } else {

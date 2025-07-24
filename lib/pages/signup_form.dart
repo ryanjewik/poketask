@@ -118,77 +118,78 @@ class _SignupFormPageState extends State<SignupFormPage> {
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               final client = Supabase.instance.client;
-                              // Check if email or username exists
-                              final emailRes = await client
-                                  .from('user_authentication_table')
-                                  .select('trainer_id')
-                                  .eq('email', _email)
-                                  .maybeSingle();
-                              final usernameRes = await client
-                                  .from('trainer_table')
-                                  .select('trainer_id')
-                                  .eq('username', _username)
-                                  .maybeSingle();
-                              if (emailRes != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Email is already taken.')),
+                              try {
+                                // Sign up with Supabase Auth (do NOT hash password)
+                                final response = await client.auth.signUp(
+                                  email: _email,
+                                  password: _password,
                                 );
-                                return;
-                              }
-                              if (usernameRes != null) {
+
+                                if (response.user == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Signup failed. Please check your details and try again.')),
+                                  );
+                                  return;
+                                }
+
+                                print("✅ Signed up!");
+
+                                final trainerId = client.auth.currentUser?.id;
+
+                                // Check if trainer_id already exists in trainer_table
+                                final existingTrainer = await client
+                                    .from('trainer_table')
+                                    .select('trainer_id')
+                                    .eq('trainer_id', trainerId ?? '')
+                                    .maybeSingle();
+                                if (existingTrainer != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Trainer already exists. Please log in.')),
+                                  );
+                                  return;
+                                }
+
+                                // Insert into trainer_table
+                                final trainerInsert = await client
+                                    .from('trainer_table')
+                                    .insert({
+                                      'trainer_id': trainerId,
+                                      'username': _username,
+                                      'sex': _gender,
+                                      'created_at': DateTime.now().toIso8601String(),
+                                      'wins': 0,
+                                      'losses': 0,
+                                      'completed_tasks': 0,
+                                      'level': 1,
+                                      'experience_points': 0,
+                                    })
+                                    .select('trainer_id')
+                                    .maybeSingle();
+                                if (trainerInsert == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Trainer creation failed.')),
+                                  );
+                                  return;
+                                }
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Username is already taken.')),
+                                  const SnackBar(content: Text('Signup successful!')),
                                 );
-                                return;
-                              }
-                              // Hash the password
-                              final hashedPassword = sha256.convert(utf8.encode(_password)).toString();
-                              // Generate a UUID for trainer_id
-                              final trainerId = const Uuid().v4();
-                              // Insert into user_authentication_table
-                              final authInsert = await client
-                                  .from('user_authentication_table')
-                                  .insert({
-                                    'trainer_id': trainerId,
-                                    'email': _email,
-                                    'password': hashedPassword,
-                                    'created_at': DateTime.now().toIso8601String(),
-                                    'username': _username,
-                                  })
-                                  .select('trainer_id')
-                                  .maybeSingle();
-                              if (authInsert == null || authInsert['trainer_id'] == null) {
+                                Navigator.pushReplacementNamed(context, '/starter_select', arguments: {'trainer_id': trainerId});
+                              } on AuthException catch (e) {
+                                if (e.message != null && e.message!.contains('over_email_send_rate_limit')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('You are trying to sign up too quickly. Please wait a minute before trying again.')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(e.message ?? 'Signup failed. Please try again.')),
+                                  );
+                                }
+                              } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Signup failed. Please try again.')),
+                                  const SnackBar(content: Text('An unexpected error occurred. Please try again.')),
                                 );
-                                return;
                               }
-                              // Insert into trainer_table
-                              final trainerInsert = await client
-                                  .from('trainer_table')
-                                  .insert({
-                                    'trainer_id': trainerId,
-                                    'username': _username,
-                                    'sex': _gender,
-                                    'created_at': DateTime.now().toIso8601String(),
-                                    'wins': 0,
-                                    'losses': 0,
-                                    'completed_tasks': 0,
-                                    'level': 1,
-                                    'experience_points': 0,
-                                  })
-                                  .select('trainer_id')
-                                  .maybeSingle();
-                              if (trainerInsert == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Trainer creation failed.')),
-                                );
-                                return;
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Signup successful!')),
-                              );
-                              Navigator.pushReplacementNamed(context, '/starter_select', arguments: {'trainer_id': trainerId});
                             }
                           },
                           child: const Text('Sign Up'),

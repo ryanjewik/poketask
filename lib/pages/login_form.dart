@@ -89,35 +89,38 @@ class _LoginFormPageState extends State<LoginFormPage> {
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               final client = Supabase.instance.client;
-                              // Hash the entered password
-                              final hashedPassword = sha256.convert(utf8.encode(_password)).toString();
-                              // Query for user with matching email
-                              final user = await client
-                                  .from('user_authentication_table')
-                                  .select('trainer_id, password')
-                                  .eq('email', _email)
-                                  .maybeSingle();
-                              if (user == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('No account found for this email.')),
+                              try {
+                                final user = await client.auth.signInWithPassword(
+                                  email: _email,
+                                  password: _password,
                                 );
-                                return;
-                              }
-                              if (user['password'] != hashedPassword) {
+                                // Login successful
+                                if (user.user != null) {
+                                  if (!mounted) return;
+                                  print('✅ Welcome \\${user.user!.email}');
+                                  final userId = client.auth.currentUser?.id;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Login successful!')),
+                                  );
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    'home',
+                                    arguments: {'trainer_id': userId},
+                                  );
+                                }
+                              } on AuthException catch (e) {
+                                if (!mounted) return;
+                                print('❌ Login error: \\${e.message}');
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Incorrect password.')),
+                                  SnackBar(content: Text('Invalid email or password. Please try again.')),
                                 );
-                                return;
+                              } catch (e) {
+                                if (!mounted) return;
+                                print('❌ Login error: \\${e.toString()}');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('An unexpected error occurred. Please try again.')),
+                                );
                               }
-                              // Login successful, route to home or dashboard
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Login successful!')),
-                              );
-                              Navigator.pushReplacementNamed(
-                                context,
-                                'home',
-                                arguments: {'trainer_id': user['trainer_id']},
-                              );
                             }
                           },
                           child: const Text('Login'),

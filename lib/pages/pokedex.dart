@@ -240,7 +240,11 @@ class _PokedexPageState extends State<PokedexPage> {
                                   height: 48,
                                   errorBuilder: (context, error, stackTrace) => const Icon(Icons.catching_pokemon),
                                 ),
-                                Text(poke.nickname.isNotEmpty ? poke.nickname : poke.pokemonName),
+                                Text(
+                                  poke.nickname.isNotEmpty ? poke.nickname : poke.pokemonName,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ],
                             ),
                           ),

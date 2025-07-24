@@ -138,7 +138,34 @@ class _favPokemonPageState extends State<favPokemonPage> {
                                   children: [
                                     if (isFavorite)
                                       Icon(Icons.star, color: Colors.amber, size: 20, shadows: [Shadow(color: Colors.red, blurRadius: 2)]),
-                                    Text(poke.nickname, style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Fredoka', color: Colors.blue[900])),
+                                    Flexible(
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          double fontSize = 16;
+                                          final maxWidth = constraints.maxWidth - (isFavorite ? 24 : 0);
+                                          final text = poke.nickname;
+                                          final textStyle = TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Fredoka', color: Colors.blue[900], fontSize: fontSize);
+                                          final textPainter = TextPainter(
+                                            text: TextSpan(text: text, style: textStyle),
+                                            maxLines: 1,
+                                            textDirection: TextDirection.ltr,
+                                          );
+                                          textPainter.layout(maxWidth: maxWidth);
+                                          while (textPainter.didExceedMaxLines && fontSize > 8) {
+                                            fontSize -= 1;
+                                            final newStyle = textStyle.copyWith(fontSize: fontSize);
+                                            textPainter.text = TextSpan(text: text, style: newStyle);
+                                            textPainter.layout(maxWidth: maxWidth);
+                                          }
+                                          return Text(
+                                            text,
+                                            style: textStyle.copyWith(fontSize: fontSize),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          );
+                                        },
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 Text('Lv. ${poke.level}', style: TextStyle(fontSize: 12, fontFamily: 'Fredoka', color: Colors.grey[800])),

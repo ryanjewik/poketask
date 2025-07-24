@@ -75,18 +75,68 @@ class MyApp extends StatelessWidget {
             ),
           );
         }
+        if (settings.name == 'calendar') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => CalendarPage(trainerId: trainerId ?? ''),
+          );
+        }
+        if (settings.name == 'tasks') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => TasksPage(trainerId: trainerId ?? ''),
+          );
+        }
+        if (settings.name == '/threads') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => ThreadsPage(trainerId: trainerId ?? ''),
+          );
+        }
+        if (settings.name == '/folders') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => FoldersPage(trainerId: trainerId ?? ''),
+          );
+        }
+        if (settings.name == '/pokebattle') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          if (trainerId == null || trainerId.isEmpty) {
+            return MaterialPageRoute(
+              builder: (context) => Scaffold(
+                appBar: AppBar(title: const Text('Error')),
+                body: const Center(child: Text('Trainer ID is missing. Cannot start battle.')),
+              ),
+            );
+          }
+          return MaterialPageRoute(
+            builder: (context) => PokeBattlePage(trainerId: trainerId),
+          );
+        }
+        if (settings.name == 'pokedex') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => PokedexPage(trainerId: trainerId ?? ''),
+          );
+        }
+        if (settings.name == 'battles') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final trainerId = args != null ? args['trainer_id'] as String? : null;
+          return MaterialPageRoute(
+            builder: (context) => BattlesPage(trainerId: trainerId ?? ''),
+          );
+        }
         // fallback to default
         return null;
       },
       routes: {
         'open': (context) => OpenPage(),
-        'calendar': (context) => CalendarPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        'tasks': (context) => TasksPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        '/threads': (context) => ThreadsPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        '/folders': (context) => FoldersPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        '/pokebattle': (context) => PokeBattlePage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        'pokedex': (context) => PokedexPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
-        'battles': (context) => BattlesPage(trainerId: 'e9c30ce7-f62e-464d-ba22-39b936172b57'),
         '/login': (context) => LoginFormPage(),
         '/signup': (context) => SignupFormPage(),
         '/starter_select': (context) => StarterSelectPage(),

@@ -33,11 +33,10 @@ class TasksPage extends StatelessWidget {
                         SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.push(
+                            Navigator.pushNamed(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => ThreadsPage(trainerId: trainerId),
-                              ),
+                              '/threads',
+                              arguments: {'trainer_id': trainerId},
                             );
                           },
                           child: Text('Go to Threads'),
@@ -76,7 +75,11 @@ class TasksPage extends StatelessWidget {
                         SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/folders');
+                            Navigator.pushNamed(
+                              context,
+                              '/folders',
+                              arguments: {'trainer_id': trainerId},
+                            );
                           },
                           child: Text('Go to Folders'),
                         ),
