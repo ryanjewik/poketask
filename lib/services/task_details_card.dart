@@ -58,7 +58,20 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         : (completedTasks > 0 ? completedTasks - 1 : 0);
       int trainerXp = trainerResponse?['experience_points'] ?? 0;
       int trainerLevel = trainerResponse?['level'] ?? 1;
-      int xpChange = completed ? 25 : -25;
+      // --- XP Scaling ---
+      int xpChange = 0;
+      if (completed) {
+        if (widget.task.highPriority == true) {
+          xpChange = 75;
+        } else {
+          xpChange = 50;
+        }
+        if (widget.task.endDate.isAfter(now)) {
+          xpChange += 25;
+        }
+      } else {
+        xpChange = -50; // If un-completing, revert base XP
+      }
       final trainerXpResult = calculateXpAndLevel(
         currentXp: trainerXp,
         currentLevel: trainerLevel,
@@ -94,10 +107,13 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
       // --- Pokémon XP/Level/Ability logic ---
       List<String> pokemonLevelUps = [];
       List<Future<void>> abilityDialogs = [];
+      // Collect slot Pokémon IDs
+      Set<String> slotPokeIds = {};
       for (int i = 1; i <= 6; i++) {
         final slotKey = 'pokemon_slot_$i';
         final pokeId = trainerResponse?[slotKey];
         if (pokeId == null) continue;
+        slotPokeIds.add(pokeId.toString());
         final pokeRes = await supabase
           .from('pokemon_table')
           .select()
@@ -113,9 +129,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
           scaler: 1.1,
           base: 100,
         );
-        // Only add to level up list if level increased
         if (pokeXpResult.levelsGained > 0) {
-          // Apply stat scaling for each level gained
           var tempPoke = Pokemon_mcts(
             pokemonName: pokeRes['pokemon_name'],
             nickname: pokeRes['nickname'],
@@ -123,14 +137,13 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
             level: pokeLevel,
             attack: pokeRes['attack'],
             maxHealth: pokeRes['health'],
-            abilities: [], // Not needed for stat scaling
+            abilities: [],
           );
           for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
             tempPoke = tempPoke.levelUp();
           }
           String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
-          pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
-          // Update DB with new XP/level and new stats
+          pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
           await supabase
             .from('pokemon_table')
             .update({
@@ -141,7 +154,6 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
             })
             .eq('pokemon_id', pokeId);
         } else {
-          // Update DB with new XP/level only
           await supabase
             .from('pokemon_table')
             .update({
@@ -150,7 +162,6 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
             })
             .eq('pokemon_id', pokeId);
         }
-        // Offer new ability if new level is a multiple of 5 and at least one level was gained
         if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
           List<String> currentAbilityIds = [];
           for (int j = 1; j <= 4; j++) {
@@ -159,7 +170,6 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
           }
           final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
           if (newAbility != null && context.mounted) {
-            // Queue the dialog to show after level-up notification
             abilityDialogs.add(Future(() async {
               await Future.delayed(const Duration(seconds: 2));
               await offerAbilityDialog(
@@ -170,6 +180,44 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
               );
             }));
           }
+        }
+      }
+      // --- Favorite Pokémon XP logic ---
+      final favoritePokeId = trainerResponse?['favorite_pokemon'];
+      if (favoritePokeId != null) {
+        // If favorite is also in a slot, it gets double XP
+        int favoriteXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange : xpChange;
+        // If in slot, it will get XP again below, so add again for double
+        if (slotPokeIds.contains(favoritePokeId.toString())) {
+          favoriteXpChange = xpChange; // Already applied above, so add again
+        }
+        final pokeRes = await supabase
+          .from('pokemon_table')
+          .select()
+          .eq('pokemon_id', favoritePokeId)
+          .maybeSingle();
+        if (pokeRes != null) {
+          int pokeXp = pokeRes['experience_points'] ?? 0;
+          int pokeLevel = pokeRes['level'] ?? 1;
+          // If in slot, add XP again for double
+          int totalXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange : xpChange;
+          if (slotPokeIds.contains(favoritePokeId.toString())) {
+            totalXpChange += xpChange;
+          }
+          final pokeXpResult = calculateXpAndLevel(
+            currentXp: pokeXp,
+            currentLevel: pokeLevel,
+            xpChange: totalXpChange,
+            scaler: 1.1,
+            base: 100,
+          );
+          await supabase
+            .from('pokemon_table')
+            .update({
+              'experience_points': pokeXpResult.newXp,
+              'level': pokeXpResult.newLevel,
+            })
+            .eq('pokemon_id', favoritePokeId);
         }
       }
       // Show level-up notification if any

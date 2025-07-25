@@ -1,4 +1,6 @@
 {
   "cmake.sourceDirectory": "E:/poketask/linux",
-  "dart.flutterSdkPath": ".fvm/versions/3.10.6"
+  "dart.flutterSdkPath": ".fvm/versions/3.10.6",
+  "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  "java.jdt.ls.java.home": "C:/Program Files/Microsoft/jdk-17.0.16.8-hotspot"
 }

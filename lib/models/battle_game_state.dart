@@ -95,10 +95,15 @@ class BattleGameState {
     }
 
     final multiplier = _getTypeEffectiveness(move.type, defender.type);
-    // New damage formula: (ability value + (pokemon attack * 0.1)) * type multiplier, rounded down
-    final rawDamage = (move.value + (attacker.attack * 0.1)) * multiplier;
-    final damage = rawDamage.floor();
-    defender.currentHealth -= damage;
+    final rawValue = (move.value + (attacker.attack * 0.1)) * multiplier;
+    final value = rawValue.floor();
+    if (move.value < 0) {
+      // Healing move: heal attacker by |value|, but not above maxHealth
+      attacker.currentHealth = (attacker.currentHealth + value.abs()).clamp(0, attacker.maxHealth);
+    } else {
+      // Damage move: damage defender
+      defender.currentHealth -= value;
+    }
     isPlayerTurn = !isPlayerTurn;
   }
 

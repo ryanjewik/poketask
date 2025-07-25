@@ -18,7 +18,7 @@ Future<Map<String, dynamic>?> fetchRandomAbilityExcluding(List<String> excludeAb
     return abilities.first;
   } else {
     // Join UUIDs without extra quotes for Postgres
-    final excludeList = excludeAbilityIds.map((id) => "'$id'").join(",");
+    final excludeList = excludeAbilityIds.join(",");
     final abilities = await supabase
         .from('abilities_table')
         .select()

@@ -189,13 +189,15 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       .eq('trainer_id', widget.trainerId)
       .maybeSingle();
     if (trainerRes == null) return;
-    // Use names assigned in _initTeams
+    // Always set username before using it
+    playerTrainerName = trainerRes['username'] ?? 'You';
+    playerName = playerTrainerName;
     winnerTrainerName = isWin ? (playerName ?? 'You') : (opponentName ?? 'Opponent');
     int wins = trainerRes['wins'] ?? 0;
     int losses = trainerRes['losses'] ?? 0;
     int xp = trainerRes['experience_points'] ?? 0;
     int level = trainerRes['level'] ?? 1;
-    int gainedXp = isWin ? 100 : 50;
+    int gainedXp = isWin ? 250 : 100;
     // Use battle context scaler (1.1) and base (100)
     final trainerXpResult = calculateXpAndLevel(
       currentXp: xp,
@@ -220,10 +222,12 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       .eq('trainer_id', widget.trainerId);
     List<String> pokemonLevelUps = [];
     List<Future<void>> abilityDialogs = [];
+    Set<String> slotPokeIds = {};
     for (int i = 1; i <= 6; i++) {
       final slotKey = 'pokemon_slot_$i';
       final pokeId = trainerRes[slotKey];
       if (pokeId == null) continue;
+      slotPokeIds.add(pokeId.toString());
       final pokeRes = await supabase
         .from('pokemon_table')
         .select()
@@ -232,16 +236,14 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
       if (pokeRes == null) continue;
       int pokeXp = pokeRes['experience_points'] ?? 0;
       int pokeLevel = pokeRes['level'] ?? 1;
-      pokeXp += gainedXp;
       final pokeXpResult = calculateXpAndLevel(
         currentXp: pokeXp,
         currentLevel: pokeLevel,
-        xpChange: 0, // already added gainedXp above
+        xpChange: gainedXp,
         scaler: 1.1,
         base: 100,
       );
       if (pokeXpResult.levelsGained > 0) {
-        // Apply stat scaling for each level gained
         var tempPoke = Pokemon_mcts(
           pokemonName: pokeRes['pokemon_name'],
           nickname: pokeRes['nickname'],
@@ -249,13 +251,13 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
           level: pokeLevel,
           attack: pokeRes['attack'],
           maxHealth: pokeRes['health'],
-          abilities: [], // Not needed for stat scaling
+          abilities: [],
         );
         for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
           tempPoke = tempPoke.levelUp();
         }
         String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
-        pokemonLevelUps.add('$pokeName (LvpokeLevel} → pokeXpResult.newLevel})');
+        pokemonLevelUps.add('$pokeName (Lv${pokeLevel} → ${pokeXpResult.newLevel})');
         await supabase
           .from('pokemon_table')
           .update({
@@ -292,16 +294,42 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
         }
         final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
         if (newAbility != null && mounted) {
-          abilityDialogs.add(Future(() async {
-            await Future.delayed(const Duration(seconds: 2));
-            await offerAbilityDialog(
-              context: context,
-              ability: newAbility,
-              pokeId: pokeId,
-              currentAbilityIds: currentAbilityIds,
-            );
-          }));
+          // Show ability dialog and wait for user action before continuing
+          await offerAbilityDialog(
+            context: context,
+            ability: newAbility,
+            pokeId: pokeId,
+            currentAbilityIds: currentAbilityIds,
+          );
         }
+      }
+    }
+    // --- Favorite Pokémon XP logic ---
+    final favoritePokeId = trainerRes['favorite_pokemon'];
+    if (favoritePokeId != null) {
+      int totalXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? gainedXp * 2 : gainedXp;
+      final pokeRes = await supabase
+        .from('pokemon_table')
+        .select()
+        .eq('pokemon_id', favoritePokeId)
+        .maybeSingle();
+      if (pokeRes != null) {
+        int pokeXp = pokeRes['experience_points'] ?? 0;
+        int pokeLevel = pokeRes['level'] ?? 1;
+        final pokeXpResult = calculateXpAndLevel(
+          currentXp: pokeXp,
+          currentLevel: pokeLevel,
+          xpChange: totalXpChange,
+          scaler: 1.1,
+          base: 100,
+        );
+        await supabase
+          .from('pokemon_table')
+          .update({
+            'experience_points': pokeXpResult.newXp,
+            'level': pokeXpResult.newLevel,
+          })
+          .eq('pokemon_id', favoritePokeId);
       }
     }
     String msg = '';
@@ -341,10 +369,6 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
           ],
         ),
       );
-    }
-    // Show ability dialogs (sequentially)
-    for (final dialog in abilityDialogs) {
-      await dialog;
     }
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
@@ -669,7 +693,7 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
           ],
         ),
       ),
-    );
+      );
   }
 
   Widget _buildAnimatedSprite(Pokemon_mcts p, {bool shake = false}) {
