@@ -139,7 +139,7 @@ flutter:
     - assets/sprites/mewtwo.png
     - assets/sprites/magikarp.png
     - assets/sprites/alakazam.png
-    - assets/sprites/gyrados.png
+    - assets/sprites/gyarados.png
     - assets/sprites/kakuna.png
     - assets/sprites/caterpie.png
     - assets/sprites/metapod.png
@@ -164,7 +164,9 @@ flutter:
     - assets/sprites/abra.png
     - assets/sprites/kadabra.png
     - assets/sprites/slowpoke.png
-    - assets/sprites/magnetron.png
+    - assets/sprites/magneton.png
+    - assets/sprites/poliwrath.png
+    - assets/sprites/
     - assets/sprites/exeggcute.png
     - assets/sprites/exeggutor.png
     - assets/sprites/cubone.png
@@ -199,7 +201,52 @@ flutter:
     - assets/sprites/venonat.png
     - assets/sprites/mew.png
     - assets/sprites/aerodactyl.png
+    - assets/sprites/butterfree.png
+    - assets/sprites/clefairy.png
+    - assets/sprites/clefable.png
     - assets/sprites/persian.png
+    - assets/sprites/omanyte.png
+    - assets/sprites/omastar.png
+    - assets/sprites/kabuto.png
+    - assets/sprites/kabutops.png
+    - assets/sprites/kingler.png
+    - assets/sprites/krabby.png
+    - assets/sprites/lickitung.png
+    - assets/sprites/chansey.png
+    - assets/sprites/tauros.png
+    - assets/sprites/kangaskhan.png
+    - assets/sprites/pinsir.png
+    - assets/sprites/cloyster.png
+    - assets/sprites/shellder.png
+    - assets/sprites/clefairy.png
+    - assets/sprites/clefable.png
+    - assets/sprites/wigglytuff.png
+    - assets/sprites/mankey.png
+    - assets/sprites/primeape.png
+    - assets/sprites/hitmonlee.png
+    - assets/sprites/hitmonchan.png
+    - assets/sprites/vulpix.png
+    - assets/sprites/ninetales.png
+    - assets/sprites/growlithe.png
+    - assets/sprites/arcanine.png
+    - assets/sprites/muk.png
+    - assets/sprites/grimer.png
+    - assets/sprites/dewgong.png
+    - assets/sprites/seel.png
+    - assets/sprites/doduo.png
+    - assets/sprites/dodrio.png
+    - assets/sprites/goldeen.png
+    - assets/sprites/seaking.png
+    - assets/sprites/ponyta.png
+    - assets/sprites/rapidash.png
+    - assets/sprites/rayquaza.png
+    - assets/sprites/weezing.png
+    - assets/sprites/koffing.png
+    - assets/sprites/mr mime.png
+    - assets/sprites/paras.png
+    - assets/sprites/parasect.png
+    - assets/sprites/zubat.png
+    - assets/sprites/golbat.png
     - assets/background/gym-background.jpg
     - assets/background/water-battle-background.jpg
     - assets/background/snow-battle-background.jpg

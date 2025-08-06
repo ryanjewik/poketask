@@ -186,11 +186,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
       final favoritePokeId = trainerResponse?['favorite_pokemon'];
       if (favoritePokeId != null) {
         // If favorite is also in a slot, it gets double XP
-        int favoriteXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange : xpChange;
-        // If in slot, it will get XP again below, so add again for double
-        if (slotPokeIds.contains(favoritePokeId.toString())) {
-          favoriteXpChange = xpChange; // Already applied above, so add again
-        }
+        int totalXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange * 2 : xpChange;
         final pokeRes = await supabase
           .from('pokemon_table')
           .select()
@@ -199,11 +195,6 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         if (pokeRes != null) {
           int pokeXp = pokeRes['experience_points'] ?? 0;
           int pokeLevel = pokeRes['level'] ?? 1;
-          // If in slot, add XP again for double
-          int totalXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange : xpChange;
-          if (slotPokeIds.contains(favoritePokeId.toString())) {
-            totalXpChange += xpChange;
-          }
           final pokeXpResult = calculateXpAndLevel(
             currentXp: pokeXp,
             currentLevel: pokeLevel,
@@ -218,6 +209,24 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
               'level': pokeXpResult.newLevel,
             })
             .eq('pokemon_id', favoritePokeId);
+          // --- Offer ability if favorite leveled up to a multiple of 5 ---
+          if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
+            List<String> currentAbilityIds = [];
+            for (int j = 1; j <= 4; j++) {
+              final abId = pokeRes['ability$j'];
+              if (abId != null) currentAbilityIds.add(abId.toString());
+            }
+            final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
+            if (newAbility != null && context.mounted) {
+              await Future.delayed(const Duration(seconds: 2));
+              await offerAbilityDialog(
+                context: context,
+                ability: newAbility,
+                pokeId: favoritePokeId.toString(),
+                currentAbilityIds: currentAbilityIds,
+              );
+            }
+          }
         }
       }
       // Show level-up notification if any

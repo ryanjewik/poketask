@@ -330,6 +330,24 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
             'level': pokeXpResult.newLevel,
           })
           .eq('pokemon_id', favoritePokeId);
+        // --- Offer ability if favorite leveled up to a multiple of 5 ---
+        if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
+          List<String> currentAbilityIds = [];
+          for (int j = 1; j <= 4; j++) {
+            final abId = pokeRes['ability$j'];
+            if (abId != null) currentAbilityIds.add(abId.toString());
+          }
+          final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
+          if (newAbility != null && mounted) {
+            await Future.delayed(const Duration(seconds: 2));
+            await offerAbilityDialog(
+              context: context,
+              ability: newAbility,
+              pokeId: favoritePokeId.toString(),
+              currentAbilityIds: currentAbilityIds,
+            );
+          }
+        }
       }
     }
     String msg = '';

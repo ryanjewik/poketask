@@ -2,19 +2,48 @@ import 'package:flutter/material.dart';
 import 'homepage.dart';
 import '../services/my_scaffold.dart';
 import 'threads_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class TasksPage extends StatelessWidget {
+class TasksPage extends StatefulWidget {
   final String trainerId;
   const TasksPage({super.key, required this.trainerId});
 
   @override
+  State<TasksPage> createState() => _TasksPageState();
+}
+
+class _TasksPageState extends State<TasksPage> {
+  int totalTasksCompleted = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCompletedTasks();
+  }
+
+  Future<void> fetchCompletedTasks() async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('trainer_table')
+        .select('completed_tasks')
+        .eq('trainer_id', widget.trainerId)
+        .maybeSingle();
+    setState(() {
+      totalTasksCompleted = response != null && response['completed_tasks'] != null
+          ? response['completed_tasks'] as int
+          : 0;
+      isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int totalTasksCompleted = 0; // This will eventually come from the database
     return Container(
       color: Colors.grey[200],
       child: MyScaffold(
         selectedIndex: 1, // Tasks tab index is 1
-        trainerId: trainerId,
+        trainerId: widget.trainerId,
         child: Container(// Background color behind everything
           child: Center(
             child: Column(
@@ -36,11 +65,16 @@ class TasksPage extends StatelessWidget {
                             Navigator.pushNamed(
                               context,
                               '/threads',
-                              arguments: {'trainer_id': trainerId},
+                              arguments: {'trainer_id': widget.trainerId},
                             );
                           },
                           child: Text('Go to Threads'),
                         ),
+                        SizedBox(height: 20),
+                        isLoading
+                            ? CircularProgressIndicator()
+                            : Text('Total Tasks Completed: $totalTasksCompleted',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -78,7 +112,7 @@ class TasksPage extends StatelessWidget {
                             Navigator.pushNamed(
                               context,
                               '/folders',
-                              arguments: {'trainer_id': trainerId},
+                              arguments: {'trainer_id': widget.trainerId},
                             );
                           },
                           child: Text('Go to Folders'),

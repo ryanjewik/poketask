@@ -216,192 +216,194 @@ class _FoldersPageState extends State<FoldersPage> {
                   ),
                 ),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return ListView(
-                        children: folders.map((folder) {
-                          final folderId = (folder['folder_id'] ?? '0').toString();
-                          final isExpanded = expandedFolderId == folderId;
-                          String folderName = (folder['folder_name'] ?? 'Unnamed Folder').toString();
-                          double fontSize = 15;
-                          final textPainter = TextPainter(
-                            text: TextSpan(text: folderName, style: TextStyle(fontSize: fontSize)),
-                            maxLines: 1,
-                            textDirection: TextDirection.ltr,
-                          );
-                          textPainter.layout(maxWidth: constraints.maxWidth - 48);
-                          while (textPainter.didExceedMaxLines && fontSize > 10) {
-                            fontSize -= 1;
-                            textPainter.text = TextSpan(text: folderName, style: TextStyle(fontSize: fontSize));
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return ListView(
+                          children: folders.map((folder) {
+                            final folderId = (folder['folder_id'] ?? '0').toString();
+                            final isExpanded = expandedFolderId == folderId;
+                            String folderName = (folder['folder_name'] ?? 'Unnamed Folder').toString();
+                            double fontSize = 15;
+                            final textPainter = TextPainter(
+                              text: TextSpan(text: folderName, style: TextStyle(fontSize: fontSize)),
+                              maxLines: 1,
+                              textDirection: TextDirection.ltr,
+                            );
                             textPainter.layout(maxWidth: constraints.maxWidth - 48);
-                          }
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: Dismissible(
-                                  key: ValueKey(folderId),
-                                  direction: folderId != '0' ? DismissDirection.endToStart : DismissDirection.none,
-                                  background: Container(
-                                    color: Colors.redAccent,
-                                    alignment: Alignment.centerRight,
-                                    padding: EdgeInsets.symmetric(horizontal: 20),
-                                    child: Icon(Icons.delete, color: Colors.white),
-                                  ),
-                                  confirmDismiss: folderId != '0'
-                                      ? (direction) async {
-                                          return await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: Text('Delete Folder'),
-                                              content: Text('Are you sure you want to delete the folder "$folderName"? All tasks in this folder will be moved to "No Folder".'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                  child: Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () => Navigator.of(context).pop(true),
-                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                                  child: Text('Delete', style: TextStyle(color: Colors.white)),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }
-                                      : null,
-                                  onDismissed: (direction) {
-                                    setState(() {
-                                      for (final t in tasks) {
-                                        if (t.folderId == folderId) {
-                                          t.folderId = '0';
-                                        }
-                                      }
-                                      folders.removeWhere((f) => f['folder_id'] == folder['folder_id']);
-                                      if (expandedFolderId == folderId) expandedFolderId = null;
-                                    });
-                                  },
-                                  child: ListTile(
-                                    leading: Icon(
-                                      Icons.folder,
-                                      color: folderId == '0'
-                                          ? Colors.grey
-                                          : (folder['color'] != null && folder['color'] is String && (folder['color'] as String).startsWith('#')
-                                              ? Color(int.parse((folder['color'] as String).replaceFirst('#', '0xff')))
-                                              : Colors.redAccent),
+                            while (textPainter.didExceedMaxLines && fontSize > 10) {
+                              fontSize -= 1;
+                              textPainter.text = TextSpan(text: folderName, style: TextStyle(fontSize: fontSize));
+                              textPainter.layout(maxWidth: constraints.maxWidth - 48);
+                            }
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: Dismissible(
+                                    key: ValueKey(folderId),
+                                    direction: folderId != '0' ? DismissDirection.endToStart : DismissDirection.none,
+                                    background: Container(
+                                      color: Colors.redAccent,
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.symmetric(horizontal: 20),
+                                      child: Icon(Icons.delete, color: Colors.white),
                                     ),
-                                    title: Text(
-                                      folderName,
-                                      style: TextStyle(fontSize: fontSize),
-                                      softWrap: true,
-                                      overflow: TextOverflow.visible,
-                                    ),
-                                    selected: isExpanded,
-                                    onTap: () {
-                                      onFolderSelected(isExpanded ? null : folderId);
-                                    },
-                                    onLongPress: folder['id'] != 0
-                                        ? () async {
-                                            final action = await showModalBottomSheet<String>(
+                                    confirmDismiss: folderId != '0'
+                                        ? (direction) async {
+                                            return await showDialog<bool>(
                                               context: context,
-                                              builder: (context) => SafeArea(
-                                                child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    ListTile(
-                                                      leading: Icon(Icons.edit),
-                                                      title: Text('Rename'),
-                                                      onTap: () => Navigator.of(context).pop('rename'),
-                                                    ),
-                                                    ListTile(
-                                                      leading: Icon(Icons.delete, color: Colors.redAccent),
-                                                      title: Text('Delete', style: TextStyle(color: Colors.redAccent)),
-                                                      onTap: () => Navigator.of(context).pop('delete'),
-                                                    ),
-                                                  ],
-                                                ),
+                                              builder: (context) => AlertDialog(
+                                                title: Text('Delete Folder'),
+                                                content: Text('Are you sure you want to delete the folder "$folderName"? All tasks in this folder will be moved to "No Folder".'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(false),
+                                                    child: Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.of(context).pop(true),
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                                    child: Text('Delete', style: TextStyle(color: Colors.white)),
+                                                  ),
+                                                ],
                                               ),
                                             );
-                                            if (action == 'rename') {
-                                              final controller = TextEditingController(text: folderName);
-                                              final newName = await showDialog<String>(
-                                                context: context,
-                                                builder: (context) => AlertDialog(
-                                                  title: Text('Rename Folder'),
-                                                  content: TextField(
-                                                    controller: controller,
-                                                    autofocus: true,
-                                                    decoration: InputDecoration(hintText: 'Folder name'),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.of(context).pop(),
-                                                      child: Text('Cancel'),
-                                                    ),
-                                                    ElevatedButton(
-                                                      onPressed: () {
-                                                        if (controller.text.trim().isNotEmpty) {
-                                                          Navigator.of(context).pop(controller.text.trim());
-                                                        }
-                                                      },
-                                                      child: Text('Rename'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                              if (newName != null && newName.isNotEmpty && newName != folderName) {
-                                                setState(() {
-                                                  folder['name'] = newName;
-                                                });
-                                              }
-                                            } else if (action == 'delete') {
-                                              final confirm = await showDialog<bool>(
-                                                context: context,
-                                                builder: (context) => AlertDialog(
-                                                  title: Text('Delete Folder'),
-                                                  content: Text('Are you sure you want to delete the folder "$folderName"? All tasks in this folder will be moved to "No Folder".'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.of(context).pop(false),
-                                                      child: Text('Cancel'),
-                                                    ),
-                                                    ElevatedButton(
-                                                      onPressed: () => Navigator.of(context).pop(true),
-                                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                                      child: Text('Delete', style: TextStyle(color: Colors.white)),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                              if (confirm == true) {
-                                                setState(() {
-                                                  for (final t in tasks) {
-                                                    if (t.folderId == folder['id'].toString()) {
-                                                      t.folderId = '0';
-                                                    }
-                                                  }
-                                                  folders.removeWhere((f) => f['id'] == folder['id']);
-                                                  if (expandedFolderId == folder['id']) expandedFolderId = null;
-                                                });
-                                              }
-                                            }
                                           }
                                         : null,
-                                    trailing: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 0), // Reduced horizontal padding
-                                    minVerticalPadding: 0,
-                                    dense: true,
+                                    onDismissed: (direction) {
+                                      setState(() {
+                                        for (final t in tasks) {
+                                          if (t.folderId == folderId) {
+                                            t.folderId = '0';
+                                          }
+                                        }
+                                        folders.removeWhere((f) => f['folder_id'] == folder['folder_id']);
+                                        if (expandedFolderId == folderId) expandedFolderId = null;
+                                      });
+                                    },
+                                    child: ListTile(
+                                      leading: Icon(
+                                        Icons.folder,
+                                        color: folderId == '0'
+                                            ? Colors.grey
+                                            : (folder['color'] != null && folder['color'] is String && (folder['color'] as String).startsWith('#')
+                                                ? Color(int.parse((folder['color'] as String).replaceFirst('#', '0xff')))
+                                                : Colors.redAccent),
+                                      ),
+                                      title: Text(
+                                        folderName,
+                                        style: TextStyle(fontSize: fontSize),
+                                        softWrap: true,
+                                        overflow: TextOverflow.visible,
+                                      ),
+                                      selected: isExpanded,
+                                      onTap: () {
+                                        onFolderSelected(isExpanded ? null : folderId);
+                                      },
+                                      onLongPress: folder['id'] != 0
+                                          ? () async {
+                                              final action = await showModalBottomSheet<String>(
+                                                context: context,
+                                                builder: (context) => SafeArea(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      ListTile(
+                                                        leading: Icon(Icons.edit),
+                                                        title: Text('Rename'),
+                                                        onTap: () => Navigator.of(context).pop('rename'),
+                                                      ),
+                                                      ListTile(
+                                                        leading: Icon(Icons.delete, color: Colors.redAccent),
+                                                        title: Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                                                        onTap: () => Navigator.of(context).pop('delete'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                              if (action == 'rename') {
+                                                final controller = TextEditingController(text: folderName);
+                                                final newName = await showDialog<String>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    title: Text('Rename Folder'),
+                                                    content: TextField(
+                                                      controller: controller,
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(hintText: 'Folder name'),
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () => Navigator.of(context).pop(),
+                                                        child: Text('Cancel'),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          if (controller.text.trim().isNotEmpty) {
+                                                            Navigator.of(context).pop(controller.text.trim());
+                                                          }
+                                                        },
+                                                        child: Text('Rename'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (newName != null && newName.isNotEmpty && newName != folderName) {
+                                                  setState(() {
+                                                    folder['name'] = newName;
+                                                  });
+                                                }
+                                              } else if (action == 'delete') {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    title: Text('Delete Folder'),
+                                                    content: Text('Are you sure you want to delete the folder "$folderName"? All tasks in this folder will be moved to "No Folder".'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () => Navigator.of(context).pop(false),
+                                                        child: Text('Cancel'),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () => Navigator.of(context).pop(true),
+                                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                                        child: Text('Delete', style: TextStyle(color: Colors.white)),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  setState(() {
+                                                    for (final t in tasks) {
+                                                      if (t.folderId == folder['id'].toString()) {
+                                                        t.folderId = '0';
+                                                      }
+                                                    }
+                                                    folders.removeWhere((f) => f['id'] == folder['id']);
+                                                    if (expandedFolderId == folder['id']) expandedFolderId = null;
+                                                  });
+                                                }
+                                              }
+                                            }
+                                          : null,
+                                      trailing: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 0), // Reduced horizontal padding
+                                      minVerticalPadding: 0,
+                                      dense: true,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      );
-                    },
+                              ],
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ),
-                // Move the Add Task button up using a Spacer and MediaQuery for adaptive padding
-                Spacer(),
+                // Remove Spacer(), keep Add Task button at the bottom
                 Padding(
                   padding: EdgeInsets.only(
                     left: 8.0,
