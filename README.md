@@ -60,7 +60,7 @@ This app is distributed as a sideloadable APK for Android devices.
 ## ✅ Steps to Install
 
 1. **Download the APK**
-   - [Download app-release.apk](https://github.com/ryanjewik/poketask/releases/download/v1.1.1/app-release.apk)
+   - [Download app-release.apk](https://github.com/ryanjewik/poketask/releases/download/v1.1.2/app-release.apk)
 
 2. **Transfer the APK to your Android device**
    - You can email it to yourself, use Google Drive, or connect your device via USB.
