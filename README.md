@@ -34,7 +34,7 @@ This unique task management app turns your daily productivity into a Pokémon ad
 ## 📖 Pokédex
 
 - View all the Pokémon you've collected on the **Pokédex page**.
-- There are **107 Generation 1 Pokémon** to collect!
+- There are **149 Generation 1 Pokémon** to collect!
 
 ---
 
@@ -60,7 +60,7 @@ This app is distributed as a sideloadable APK for Android devices.
 ## ✅ Steps to Install
 
 1. **Download the APK**
-   - [Download app-release.apk](https://github.com/ryanjewik/poketask/releases/download/v1.1.2/app-release.apk)
+   - [Download app-release.apk](https://github.com/ryanjewik/poketask/releases/download/v1.1.4/app-release.apk)
 
 2. **Transfer the APK to your Android device**
    - You can email it to yourself, use Google Drive, or connect your device via USB.
