@@ -14,10 +14,10 @@ import 'dart:io';
 import 'services/music_service.dart';
 import 'pages/login_form.dart';
 import 'pages/signup_form.dart';
-import 'pages/fav_pokemon.dart';
 import 'pages/starter_select.dart';
 import 'pages/splash_page.dart';
 import 'services/notification_service.dart';
+import 'pages/reset_password.dart';
 
 
 final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -28,6 +28,9 @@ Future<void> main() async {
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.implicit,
+    ),
   );
   // Request notification permissions
 // Replace with your local time zone
@@ -146,6 +149,7 @@ class MyApp extends StatelessWidget {
         'open': (context) => OpenPage(),
         '/login': (context) => LoginFormPage(),
         '/signup': (context) => SignupFormPage(),
+        '/reset_password': (context) => ResetPasswordPage(),
         '/starter_select': (context) => StarterSelectPage(),
       }
     );

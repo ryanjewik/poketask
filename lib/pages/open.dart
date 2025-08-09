@@ -112,6 +112,20 @@ class _OpenPageState extends State<OpenPage> {
                         child: const Text('Sign Up'),
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/reset_password');
+                      },
+                      child:
+                        Text("reset password",
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.blueAccent,
+                          ),
+                    )
+                    )
                   ],
                 ),
               ),

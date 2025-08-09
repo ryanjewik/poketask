@@ -19,7 +19,16 @@ class _LoginFormPageState extends State<LoginFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Login'),
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -99,14 +108,93 @@ class _LoginFormPageState extends State<LoginFormPage> {
                                   if (!mounted) return;
                                   print('✅ Welcome \\${user.user!.email}');
                                   final userId = client.auth.currentUser?.id;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Login successful!')),
-                                  );
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    'home',
-                                    arguments: {'trainer_id': userId},
-                                  );
+                                  if (userId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Login failed: No user ID found. Please try again.')),
+                                    );
+                                    return;
+                                  }
+                                  // Check if trainer record exists
+                                  final trainer = await client
+                                      .from('trainer_table')
+                                      .select('trainer_id')
+                                      .eq('trainer_id', userId)
+                                      .maybeSingle();
+                                  if (trainer == null) {
+                                    // Prompt for username and gender
+                                    final result = await showDialog<Map<String, String>>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        String username = '';
+                                        String gender = 'Male';
+                                        return AlertDialog(
+                                          title: const Text('Complete Your Profile'),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TextFormField(
+                                                decoration: const InputDecoration(labelText: 'Username'),
+                                                onChanged: (value) => username = value,
+                                              ),
+                                              DropdownButtonFormField<String>(
+                                                value: gender,
+                                                decoration: const InputDecoration(labelText: 'Gender'),
+                                                items: const [
+                                                  DropdownMenuItem(value: 'Male', child: Text('Male')),
+                                                  DropdownMenuItem(value: 'Female', child: Text('Female')),
+                                                  DropdownMenuItem(value: 'Other', child: Text('Other')),
+                                                ],
+                                                onChanged: (value) {
+                                                  if (value != null) gender = value;
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                if (username.isNotEmpty) {
+                                                  Navigator.of(context).pop({'username': username, 'gender': gender});
+                                                }
+                                              },
+                                              child: const Text('Continue'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                    if (result != null && result['username'] != null) {
+                                      await client.from('trainer_table').insert({
+                                        'trainer_id': userId,
+                                        'username': result['username'],
+                                        'sex': result['gender'],
+                                        'created_at': DateTime.now().toIso8601String(),
+                                        'wins': 0,
+                                        'losses': 0,
+                                        'completed_tasks': 0,
+                                        'level': 1,
+                                        'experience_points': 0,
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Profile created!')),
+                                      );
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        '/starter_select',
+                                        arguments: {'trainer_id': userId},
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Login successful!')),
+                                    );
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      'home',
+                                      arguments: {'trainer_id': userId},
+                                    );
+                                  }
                                 }
                               } on AuthException catch (e) {
                                 if (!mounted) return;

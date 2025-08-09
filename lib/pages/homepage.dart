@@ -8,6 +8,7 @@ import '../models/pokemon.dart';
 import '../models/trainer.dart';
 import '../services/music_service.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -62,16 +63,33 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     fetchTrainerData();
     fetchPokemonData();
     fetchTaskData();
-    // Start menu music by default
-    MusicService().playMusic('music/menu_music.mp3');
-    isMusicPlaying = true;
+    _loadMusicPreference();
+  }
+
+  Future<void> _loadMusicPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final musicOn = prefs.getBool('music_on') ?? true;
+    setState(() {
+      isMusicPlaying = musicOn;
+    });
+    await MusicService().setMute(!musicOn);
+    if (musicOn) {
+      await MusicService().playMusic('music/menu_music.mp3');
+    } else {
+      await MusicService().stopMusic();
+    }
   }
 
   void toggleMusic() async {
+    final prefs = await SharedPreferences.getInstance();
     if (isMusicPlaying) {
       await MusicService().stopMusic();
+      await MusicService().setMute(true);
+      await prefs.setBool('music_on', false);
     } else {
+      await MusicService().setMute(false);
       await MusicService().playMusic('music/menu_music.mp3');
+      await prefs.setBool('music_on', true);
     }
     setState(() {
       isMusicPlaying = !isMusicPlaying;
@@ -301,7 +319,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                             await Supabase.instance.client.auth.signOut();
                                             if (!mounted) return;
                                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                                              Navigator.of(context, rootNavigator: true).pushReplacementNamed('/login');
+                                              Navigator.of(context, rootNavigator: true).pushReplacementNamed('open');
                                             });
                                           },
                                           child: Text('Logout'),

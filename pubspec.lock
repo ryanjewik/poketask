@@ -242,7 +242,7 @@ packages:
     source: hosted
     version: "1.1.1"
   flutter:
-    dependency: "direct main"
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -282,10 +282,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "81350df6cb90196390b0b175c645968620d508a4fc9db5996215a1cfa4135a03"
+      sha256: "20ca0a9c82ce0c855ac62a2e580ab867f3fbea82680a90647f7953832d0850ae"
       url: "https://pub.dev"
     source: hosted
-    version: "19.3.1"
+    version: "19.4.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -409,10 +409,10 @@ packages:
     dependency: transitive
     description:
       name: http
-      sha256: "2c11f3f94c687ee9bad77c171151672986360b2b001d109814ee7140b2cf261b"
+      sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   http_parser:
     dependency: transitive
     description:
@@ -713,10 +713,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: "20cbd561f743a342c76c151d6ddb93a9ce6005751e7aa458baad3858bfbfb6ac"
+      sha256: "5bcf0772a761b04f8c6bf814721713de6f3e5d9d89caf8d3fe031b02a342379e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.10"
+    version: "2.4.11"
   shared_preferences_foundation:
     dependency: transitive
     description:
@@ -830,34 +830,34 @@ packages:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_calendar
-      sha256: "2e982ddc26370bb6d29be05f69423688be4a3912bb3c2c7c59dd6d3f62522e06"
+      sha256: e0d3b20f64f6c5467726d243c5c26695280b2bc414e6ee026a5b6b366fe44abd
       url: "https://pub.dev"
     source: hosted
-    version: "30.1.41"
+    version: "30.2.4"
   syncfusion_flutter_core:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "536753489e168f49659261d0abd02b101b34c0b1bde27898f2869aab05f1cbb6"
+      sha256: "9d6b7722331e8c84e837d852da03f3735bf436fe6ebf2acc3455a2a21a0d47ff"
       url: "https://pub.dev"
     source: hosted
-    version: "30.1.41"
+    version: "30.2.4"
   syncfusion_flutter_datepicker:
     dependency: transitive
     description:
       name: syncfusion_flutter_datepicker
-      sha256: "7607848d811ff130fcf40b930edb5b1e0a180335470cbf4eb20c695c7b18f379"
+      sha256: "3d99a82478a4df142d8dd5a34e10770132c553e5de319153441e25558fd81f5f"
       url: "https://pub.dev"
     source: hosted
-    version: "30.1.41"
+    version: "30.2.4"
   syncfusion_localizations:
     dependency: transitive
     description:
       name: syncfusion_localizations
-      sha256: "5fd27ef269fccfc9ec755db8f7f2db0169b843a057f14654593b3cc88d6bbfdf"
+      sha256: "5c7b216b074c6bd19a79727bbda24b925e78c84b87c48c83ca29397304eca15b"
       url: "https://pub.dev"
     source: hosted
-    version: "30.1.41"
+    version: "30.2.4"
   synchronized:
     dependency: transitive
     description:
@@ -910,10 +910,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "8582d7f6fe14d2652b4c45c9b6c14c0b678c2af2d083a11b604caeba51930d79"
+      sha256: "0aedad096a85b49df2e4725fa32118f9fa580f3b14af7a2d2221896a02cd5656"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.16"
+    version: "6.3.17"
   url_launcher_ios:
     dependency: transitive
     description:
@@ -1051,5 +1051,5 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.8.1 <4.0.0"
-  flutter: ">=3.27.0"
+  dart: ">=3.8.0 <4.0.0"
+  flutter: ">=3.29.0"

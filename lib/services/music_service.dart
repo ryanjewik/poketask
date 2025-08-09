@@ -13,6 +13,7 @@ class MusicService {
   bool get isMuted => _isMuted;
 
   Future<void> playMusic(String assetPath) async {
+    if (_isMuted) return; // Don't play if muted
     if (_isPlaying && _currentAsset == assetPath) return;
     await _player.stop();
     await _player.setReleaseMode(ReleaseMode.loop);

@@ -119,62 +119,45 @@ class _SignupFormPageState extends State<SignupFormPage> {
                             if (_formKey.currentState!.validate()) {
                               final client = Supabase.instance.client;
                               try {
-                                // Sign up with Supabase Auth (do NOT hash password)
+
                                 final response = await client.auth.signUp(
                                   email: _email,
                                   password: _password,
+                                  emailRedirectTo: 'https://ryanhideosmtp.com/confirm',
                                 );
-
                                 if (response.user == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Signup failed. Please check your details and try again.')),
                                   );
                                   return;
                                 }
-
-                                print("✅ Signed up!");
-
-                                final trainerId = client.auth.currentUser?.id;
-
-                                // Check if trainer_id already exists in trainer_table
-                                final existingTrainer = await client
-                                    .from('trainer_table')
-                                    .select('trainer_id')
-                                    .eq('trainer_id', trainerId ?? '')
-                                    .maybeSingle();
-                                if (existingTrainer != null) {
+                                final trainerId = response.user?.id;
+                                if (trainerId == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Trainer already exists. Please log in.')),
-                                  );
-                                  return;
-                                }
-
-                                // Insert into trainer_table
-                                final trainerInsert = await client
-                                    .from('trainer_table')
-                                    .insert({
-                                      'trainer_id': trainerId,
-                                      'username': _username,
-                                      'sex': _gender,
-                                      'created_at': DateTime.now().toIso8601String(),
-                                      'wins': 0,
-                                      'losses': 0,
-                                      'completed_tasks': 0,
-                                      'level': 1,
-                                      'experience_points': 0,
-                                    })
-                                    .select('trainer_id')
-                                    .maybeSingle();
-                                if (trainerInsert == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Trainer creation failed.')),
+                                    const SnackBar(content: Text('Signup failed: No user ID returned. Please try again.')),
                                   );
                                   return;
                                 }
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Signup successful!')),
+                                  const SnackBar(content: Text('Signup successful! Please check your email to confirm your account, then log in.')),
                                 );
-                                Navigator.pushReplacementNamed(context, '/starter_select', arguments: {'trainer_id': trainerId});
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Confirm Your Email'),
+                                      content: const Text('A confirmation link has been sent to your email. Please confirm your email, then log in.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                Navigator.of(context).pop(); // Go back to open/login page
                               } on AuthException catch (e) {
                                 if (e.message != null && e.message!.contains('over_email_send_rate_limit')) {
                                   ScaffoldMessenger.of(context).showSnackBar(

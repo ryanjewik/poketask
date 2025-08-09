@@ -9,6 +9,7 @@ import '../services/music_service.dart';
 import '../services/xp_utils.dart';
 import '../services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class PokeBattlePage extends StatefulWidget {
@@ -52,12 +53,23 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   @override
   void initState() {
     super.initState();
-    // Stop menu music before starting battle music
-    MusicService().stopMusic();
-    playBattleMusic();
-    isMusicPlaying = true;
+    _loadMusicPreference();
     controller = null;
     _initTeams();
+  }
+
+  Future<void> _loadMusicPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final musicOn = prefs.getBool('music_on') ?? true;
+    setState(() {
+      isMusicPlaying = musicOn;
+    });
+    await MusicService().setMute(!musicOn);
+    if (musicOn) {
+      await MusicService().playMusic('music/battle_music.mp3');
+    } else {
+      await MusicService().stopMusic();
+    }
   }
 
   Future<void> _initTeams() async {
@@ -808,20 +820,22 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
     }
   }
 
-  void playBattleMusic() {
-    MusicService().playMusic('music/battle_music.mp3');
-  }
-
-  void toggleMusic() {
+  void toggleMusic() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (isMusicPlaying) {
+      await MusicService().stopMusic();
+      await MusicService().setMute(true);
+      await prefs.setBool('music_on', false);
+    } else {
+      await MusicService().setMute(false);
+      await MusicService().playMusic('music/battle_music.mp3');
+      await prefs.setBool('music_on', true);
+    }
     setState(() {
       isMusicPlaying = !isMusicPlaying;
-      if (isMusicPlaying) {
-        MusicService().playMusic('music/battle_music.mp3');
-      } else {
-        MusicService().stopMusic();
-      }
     });
   }
+
 
   void onPlayerAction(String action) {
     playTurnAnimationSequence(action);
@@ -832,8 +846,19 @@ class _PokeBattlePageState extends State<PokeBattlePage> {
   void dispose() {
     // Stop battle music and resume menu music when leaving the page
     MusicService().stopMusic(); // Stop battle music
-    MusicService().playMusic('music/menu_music.mp3'); // Resume menu music
+    _resumeMenuMusic();
     super.dispose();
+  }
+
+  Future<void> _resumeMenuMusic() async {
+    final prefs = await SharedPreferences.getInstance();
+    final musicOn = prefs.getBool('music_on') ?? true;
+    await MusicService().setMute(!musicOn);
+    if (musicOn) {
+      await MusicService().playMusic('music/menu_music.mp3');
+    } else {
+      await MusicService().stopMusic();
+    }
   }
 }
 class AnimatedHPBar extends StatelessWidget {
