@@ -518,11 +518,17 @@ class _FoldersPageState extends State<FoldersPage> {
                                     width: double.infinity,
                                     child: InkWell(
                                       onTap: () async {
-                                        await showDialog(
+                                        final result = await showDialog(
                                           context: context,
                                           builder: (context) => TaskDetailsCard(task: task),
                                         );
-                                        setState(() {});
+                                        if (!mounted) return;
+                                        if (result == 'delete') {
+                                          // A recurring delete can remove many tasks, so reload the folder.
+                                          onFolderSelected(expandedFolderId);
+                                        } else {
+                                          setState(() {});
+                                        }
                                       },
                                       child: ListTile(
                                         leading: Icon(

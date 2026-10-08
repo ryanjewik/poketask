@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:poketask/services/xp_utils.dart';
 import 'package:poketask/services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/task.dart';
-import '../models/pokemon_mcts.dart';
+import 'sfx_service.dart';
+import 'task_completion_service.dart';
+import 'notification_service.dart';
 
 class TaskDetailsCard extends StatefulWidget {
   final Task task;
@@ -15,8 +18,14 @@ class TaskDetailsCard extends StatefulWidget {
 
 class _TaskDetailsCardState extends State<TaskDetailsCard> {
   late bool isCompleted;
+  // Tasks with a completion save in flight. Static so reopening the card while
+  // the previous save is running can't toggle the task (and its XP) again.
+  static final Set<String> _completionsInFlight = <String>{};
+  final SfxService _sfx = SfxService(); // first access preloads the chime
   late String notes;
   final TextEditingController _notesController = TextEditingController();
+  bool _savingDates = false;
+  bool _deleting = false;
 
   @override
   void initState() {
@@ -32,231 +41,104 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
     super.dispose();
   }
 
+  /// Optimistic: the checkmark (and chime) flip immediately, then the task and
+  /// XP rewards are saved by [TaskCompletionService]. If the task row can't be
+  /// saved the state is reverted. Celebration dialogs show after the writes.
   Future<void> updateTaskCompleted(bool completed) async {
-    final supabase = Supabase.instance.client;
+    final task = widget.task;
+    // Ignore double taps while saving.
+    if (!_completionsInFlight.add(task.taskId)) return;
     final now = DateTime.now();
-    await supabase
-        .from('task_table')
-        .update({
-          'is_completed': completed,
-          'date_completed': completed ? now.toIso8601String() : null,
-        })
-        .eq('task_id', widget.task.taskId);
+    final previousDateCompleted = task.dateCompleted;
+    // Captured before any await: the user may close this card while rewards
+    // are still saving, and level-up/ability dialogs should still appear.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final dialogContext = Navigator.of(context, rootNavigator: true).context;
 
-    final trainerId = widget.task.trainerId;
-    if (trainerId != null && trainerId.isNotEmpty) {
-      final trainerResponse = await supabase
-        .from('trainer_table')
-        .select()
-        .eq('trainer_id', trainerId)
-        .maybeSingle();
-      int completedTasks = (trainerResponse != null && trainerResponse['completed_tasks'] != null)
-        ? trainerResponse['completed_tasks'] as int
-        : 0;
-      final newCompletedTasks = completed
-        ? completedTasks + 1
-        : (completedTasks > 0 ? completedTasks - 1 : 0);
-      int trainerXp = trainerResponse?['experience_points'] ?? 0;
-      int trainerLevel = trainerResponse?['level'] ?? 1;
-      // --- XP Scaling ---
-      int xpChange = 0;
-      if (completed) {
-        if (widget.task.highPriority == true) {
-          xpChange = 75;
-        } else {
-          xpChange = 50;
-        }
-        if (widget.task.endDate.isAfter(now)) {
-          xpChange += 25;
-        }
-      } else {
-        xpChange = -50; // If un-completing, revert base XP
-      }
-      final trainerXpResult = calculateXpAndLevel(
-        currentXp: trainerXp,
-        currentLevel: trainerLevel,
-        xpChange: xpChange,
-        scaler: 1.1,
-        base: 100,
-      );
-      trainerXp = trainerXpResult.newXp;
-      trainerLevel = trainerXpResult.newLevel;
-      bool trainerLeveledUp = trainerXpResult.levelsGained > 0;
-      await supabase
-        .from('trainer_table')
-        .update({
-          'completed_tasks': newCompletedTasks,
-          'experience_points': trainerXp,
-          'level': trainerLevel,
-        })
-        .eq('trainer_id', trainerId);
-      // --- Trainer level up: add random Pokémon and show dialog ---
-      if (trainerLeveledUp) {
-        final newPokeId = await addRandomPokemonToTrainer(trainerId);
-        if (newPokeId != null) {
-          final pokeRes = await supabase
-            .from('pokemon_table')
-            .select()
-            .eq('pokemon_id', newPokeId)
-            .maybeSingle();
-          if (pokeRes != null && context.mounted) {
-            await showNewPokemonDialog(context, pokeRes['pokemon_name'], pokeRes['type']);
-          }
-        }
-      }
-      // --- Pokémon XP/Level/Ability logic ---
-      List<String> pokemonLevelUps = [];
-      List<Future<void>> abilityDialogs = [];
-      // Collect slot Pokémon IDs
-      Set<String> slotPokeIds = {};
-      for (int i = 1; i <= 6; i++) {
-        final slotKey = 'pokemon_slot_$i';
-        final pokeId = trainerResponse?[slotKey];
-        if (pokeId == null) continue;
-        slotPokeIds.add(pokeId.toString());
-        final pokeRes = await supabase
-          .from('pokemon_table')
-          .select()
-          .eq('pokemon_id', pokeId)
-          .maybeSingle();
-        if (pokeRes == null) continue;
-        int pokeXp = pokeRes['experience_points'] ?? 0;
-        int pokeLevel = pokeRes['level'] ?? 1;
-        final pokeXpResult = calculateXpAndLevel(
-          currentXp: pokeXp,
-          currentLevel: pokeLevel,
-          xpChange: xpChange,
-          scaler: 1.1,
-          base: 100,
-        );
-        if (pokeXpResult.levelsGained > 0) {
-          var tempPoke = Pokemon_mcts(
-            pokemonName: pokeRes['pokemon_name'],
-            nickname: pokeRes['nickname'],
-            type: pokeRes['type'],
-            level: pokeLevel,
-            attack: pokeRes['attack'],
-            maxHealth: pokeRes['health'],
-            abilities: [],
-          );
-          for (int lvl = 0; lvl < pokeXpResult.levelsGained; lvl++) {
-            tempPoke = tempPoke.levelUp();
-          }
-          String pokeName = pokeRes['nickname'] ?? pokeRes['pokemon_name'] ?? 'Pokémon';
-          pokemonLevelUps.add('$pokeName (Lv ${pokeLevel} → ${pokeXpResult.newLevel})');
-          await supabase
-            .from('pokemon_table')
-            .update({
-              'experience_points': pokeXpResult.newXp,
-              'level': pokeXpResult.newLevel,
-              'health': tempPoke.maxHealth,
-              'attack': tempPoke.attack,
-            })
-            .eq('pokemon_id', pokeId);
-        } else {
-          await supabase
-            .from('pokemon_table')
-            .update({
-              'experience_points': pokeXpResult.newXp,
-              'level': pokeXpResult.newLevel,
-            })
-            .eq('pokemon_id', pokeId);
-        }
-        if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
-          List<String> currentAbilityIds = [];
-          for (int j = 1; j <= 4; j++) {
-            final abId = pokeRes['ability$j'];
-            if (abId != null) currentAbilityIds.add(abId.toString());
-          }
-          final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
-          if (newAbility != null && context.mounted) {
-            abilityDialogs.add(Future(() async {
-              await Future.delayed(const Duration(seconds: 2));
-              await offerAbilityDialog(
-                context: context,
-                ability: newAbility,
-                pokeId: pokeId.toString(),
-                currentAbilityIds: currentAbilityIds,
-              );
-            }));
-          }
-        }
-      }
-      // --- Favorite Pokémon XP logic ---
-      final favoritePokeId = trainerResponse?['favorite_pokemon'];
-      if (favoritePokeId != null) {
-        // If favorite is also in a slot, it gets double XP
-        int totalXpChange = slotPokeIds.contains(favoritePokeId.toString()) ? xpChange * 2 : xpChange;
-        final pokeRes = await supabase
-          .from('pokemon_table')
-          .select()
-          .eq('pokemon_id', favoritePokeId)
-          .maybeSingle();
-        if (pokeRes != null) {
-          int pokeXp = pokeRes['experience_points'] ?? 0;
-          int pokeLevel = pokeRes['level'] ?? 1;
-          final pokeXpResult = calculateXpAndLevel(
-            currentXp: pokeXp,
-            currentLevel: pokeLevel,
-            xpChange: totalXpChange,
-            scaler: 1.1,
-            base: 100,
-          );
-          await supabase
-            .from('pokemon_table')
-            .update({
-              'experience_points': pokeXpResult.newXp,
-              'level': pokeXpResult.newLevel,
-            })
-            .eq('pokemon_id', favoritePokeId);
-          // --- Offer ability if favorite leveled up to a multiple of 5 ---
-          if (pokeXpResult.levelsGained > 0 && pokeXpResult.newLevel % 5 == 0) {
-            List<String> currentAbilityIds = [];
-            for (int j = 1; j <= 4; j++) {
-              final abId = pokeRes['ability$j'];
-              if (abId != null) currentAbilityIds.add(abId.toString());
-            }
-            final newAbility = await fetchRandomAbilityExcluding(currentAbilityIds);
-            if (newAbility != null && context.mounted) {
-              await Future.delayed(const Duration(seconds: 2));
-              await offerAbilityDialog(
-                context: context,
-                ability: newAbility,
-                pokeId: favoritePokeId.toString(),
-                currentAbilityIds: currentAbilityIds,
-              );
-            }
-          }
-        }
-      }
-      // Show level-up notification if any
-      if (pokemonLevelUps.isNotEmpty && context.mounted) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Pokémon Leveled Up!'),
-            content: Text(pokemonLevelUps.join('\n')),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-      // Show ability dialogs (sequentially)
-      for (final dialog in abilityDialogs) {
-        await dialog;
-      }
+    void applyState(bool value, DateTime dateCompleted) {
+      isCompleted = value;
+      task.isCompleted = value;
+      task.dateCompleted = dateCompleted;
     }
-    if (!mounted) return;
-    setState(() {
-      isCompleted = completed;
-      widget.task.isCompleted = completed;
-      widget.task.dateCompleted = completed ? now : DateTime(2100);
-    });
-    // Do not close the dialog here
+
+    setState(() => applyState(completed, completed ? now : DateTime(2100)));
+    _syncTaskReminders(completed);
+    if (completed) unawaited(_sfx.playTaskComplete());
+
+    final TaskCompletionResult result;
+    try {
+      result = await TaskCompletionService.setCompleted(
+        task: task,
+        completed: completed,
+        now: now,
+      );
+    } catch (e) {
+      debugPrint('updateTaskCompleted: saving task failed: $e');
+      if (mounted) {
+        setState(() => applyState(!completed, previousDateCompleted));
+      } else {
+        applyState(!completed, previousDateCompleted);
+      }
+      _syncTaskReminders(!completed);
+      if (messenger != null && messenger.mounted) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text("Couldn't update the task. Please try again."),
+        ));
+      }
+      return;
+    } finally {
+      _completionsInFlight.remove(task.taskId);
+    }
+
+    if (result.rewardsFailed && messenger != null && messenger.mounted) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Task saved, but XP rewards could not be updated.'),
+      ));
+    }
+    final newPokemon = result.newPokemon;
+    if (newPokemon != null && dialogContext.mounted) {
+      await showNewPokemonDialog(
+        dialogContext,
+        '${newPokemon['pokemon_name']}',
+        '${newPokemon['type']}',
+      );
+    }
+    if (result.pokemonLevelUps.isNotEmpty && dialogContext.mounted) {
+      await showDialog<void>(
+        context: dialogContext,
+        builder: (context) => AlertDialog(
+          title: const Text('Pokémon Leveled Up!'),
+          content: Text(result.pokemonLevelUps.join('\n')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+    // Ability offers, one at a time, with a short beat between dialogs.
+    for (final offer in result.abilityOffers) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      if (!dialogContext.mounted) return;
+      await offerAbilityDialog(
+        context: dialogContext,
+        ability: offer.ability,
+        pokeId: offer.pokeId,
+        currentAbilityIds: offer.currentAbilityIds,
+      );
+    }
+  }
+
+  /// Fire-and-forget: completed tasks lose their reminders, reopened ones get
+  /// them back. NotificationService never throws.
+  void _syncTaskReminders(bool completed) {
+    if (completed) {
+      unawaited(NotificationService.cancelTaskReminders(widget.task.taskId));
+    } else {
+      unawaited(NotificationService.scheduleTaskReminders(widget.task));
+    }
   }
 
   Future<void> updateTaskNotes(String notes) async {
@@ -265,6 +147,198 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
         .from('task_table')
         .update({'task_notes': notes})
         .eq('task_id', widget.task.taskId);
+  }
+
+  // ---- Start/end editing ----
+
+  String _formatDateTime(DateTime d) {
+    final date = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    if (widget.task.isAllDay) return date;
+    return '$date ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  // Whole calendar days between two dates (DST-safe).
+  int _daysBetween(DateTime from, DateTime to) {
+    return DateTime.utc(to.year, to.month, to.day)
+        .difference(DateTime.utc(from.year, from.month, from.day))
+        .inDays;
+  }
+
+  // Date picker, then a time picker unless the task is all-day.
+  Future<DateTime?> _pickDateTime(DateTime initial) async {
+    final minDate = DateTime(2000);
+    final maxDate = DateTime(2100, 12, 31);
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: initial.isBefore(minDate) ? initial : minDate,
+      lastDate: initial.isAfter(maxDate) ? initial : maxDate,
+    );
+    if (pickedDate == null || !mounted) return null;
+    if (widget.task.isAllDay) return pickedDate;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (pickedTime == null) return null;
+    return DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
+        pickedTime.hour, pickedTime.minute);
+  }
+
+  Future<void> _editStartDate() async {
+    final task = widget.task;
+    final picked = await _pickDateTime(task.startDate);
+    if (picked == null || !mounted) return;
+    DateTime newStart;
+    DateTime newEnd;
+    if (task.isAllDay) {
+      // Keep the same number of days, snapped to day boundaries.
+      final spanDays = _daysBetween(task.startDate, task.endDate);
+      newStart = startOfDay(picked);
+      newEnd = endOfDay(DateTime(newStart.year, newStart.month,
+          newStart.day + (spanDays < 0 ? 0 : spanDays)));
+    } else {
+      // Shift the end so the task keeps its original duration.
+      final duration = task.endDate.difference(task.startDate);
+      newStart = picked;
+      newEnd = picked.add(duration.isNegative ? Duration.zero : duration);
+    }
+    await _saveTaskDates(newStart, newEnd);
+  }
+
+  Future<void> _editEndDate() async {
+    final task = widget.task;
+    final picked = await _pickDateTime(task.endDate);
+    if (picked == null || !mounted) return;
+    final newEnd = task.isAllDay ? endOfDay(picked) : picked;
+    if (newEnd.isBefore(task.startDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('End can\'t be before the start.')),
+      );
+      return;
+    }
+    await _saveTaskDates(task.startDate, newEnd);
+  }
+
+  Future<void> _saveTaskDates(DateTime newStart, DateTime newEnd) async {
+    final task = widget.task;
+    final oldStart = task.startDate;
+    final oldEnd = task.endDate;
+    if (newStart == oldStart && newEnd == oldEnd) return;
+    setState(() {
+      _savingDates = true;
+      task.startDate = newStart;
+      task.endDate = newEnd;
+    });
+    try {
+      await Supabase.instance.client
+          .from('task_table')
+          .update({
+            'start_date': newStart.toIso8601String(),
+            'end_date': newEnd.toIso8601String(),
+          })
+          .eq('task_id', task.taskId);
+    } catch (e) {
+      debugPrint('❌ Failed to update task dates: $e');
+      task.startDate = oldStart;
+      task.endDate = oldEnd;
+      if (!mounted) return;
+      setState(() => _savingDates = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Couldn\'t update the task dates. Please try again.')),
+      );
+      return;
+    }
+    if (mounted) setState(() => _savingDates = false);
+    // Fire-and-forget: never throws, and the UI shouldn't wait on it.
+    NotificationService.scheduleTaskReminders(task);
+  }
+
+  Widget _buildDateRow({
+    required String label,
+    required DateTime value,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, size: 20),
+      title: Text(label),
+      subtitle: Text(_formatDateTime(value)),
+      trailing: Icon(Icons.edit, size: 18),
+      enabled: !_savingDates,
+      onTap: onTap,
+    );
+  }
+
+  // ---- Delete ----
+
+  Future<void> _deleteTask() async {
+    final task = widget.task;
+    String? scope = 'single';
+    if (task.isRecurring) {
+      scope = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Delete recurring task'),
+          content: Text('"${task.taskText}" is part of a recurring series.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop('single'),
+              child: Text('Delete this task only', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop('following'),
+              child: Text('Delete this and all following', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+      if (scope == null || !mounted) return;
+    }
+    setState(() => _deleting = true);
+    final supabase = Supabase.instance.client;
+    final deletedIds = <String>{task.taskId};
+    try {
+      if (scope == 'following') {
+        final fromStart = task.startDate.toIso8601String();
+        // Collect the ids first so their reminders can be cancelled.
+        final rows = await supabase
+            .from('task_table')
+            .select('task_id')
+            .eq('recurrence_id', task.recurrenceId!)
+            .gte('start_date', fromStart);
+        deletedIds.addAll(rows.map((r) => r['task_id'].toString()));
+        await supabase
+            .from('task_table')
+            .delete()
+            .eq('recurrence_id', task.recurrenceId!)
+            .gte('start_date', fromStart);
+      } else {
+        await supabase
+            .from('task_table')
+            .delete()
+            .eq('task_id', task.taskId);
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to delete task: $e');
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Couldn\'t delete the task. Please try again.')),
+      );
+      return;
+    }
+    for (final id in deletedIds) {
+      NotificationService.cancelTaskReminders(id);
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop('delete');
   }
 
   @override
@@ -360,12 +434,23 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
               ),
             ),
             SizedBox(height: 8),
-            Text('Start: '
-                '${widget.task.startDate.year}-${widget.task.startDate.month.toString().padLeft(2, '0')}-${widget.task.startDate.day.toString().padLeft(2, '0')} '
-                '${widget.task.startDate.hour.toString().padLeft(2, '0')}:${widget.task.startDate.minute.toString().padLeft(2, '0')}'),
-            Text('End: '
-                '${widget.task.endDate.year}-${widget.task.endDate.month.toString().padLeft(2, '0')}-${widget.task.endDate.day.toString().padLeft(2, '0')} '
-                '${widget.task.endDate.hour.toString().padLeft(2, '0')}:${widget.task.endDate.minute.toString().padLeft(2, '0')}'),
+            _buildDateRow(
+              label: widget.task.isAllDay ? 'Start (all day)' : 'Start',
+              value: widget.task.startDate,
+              icon: Icons.play_circle_outline,
+              onTap: _editStartDate,
+            ),
+            _buildDateRow(
+              label: widget.task.isAllDay ? 'End (all day)' : 'End',
+              value: widget.task.endDate,
+              icon: Icons.flag_outlined,
+              onTap: _editEndDate,
+            ),
+            if (widget.task.isRecurring)
+              Text(
+                'Date changes apply to this occurrence only.',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              ),
             SizedBox(height: 8),
             Text('Completed: ${isCompleted ? "Yes" : "No"}'),
           ],
@@ -377,15 +462,8 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
           child: Text('Close'),
         ),
         TextButton(
-          onPressed: () async {
-            final supabase = Supabase.instance.client;
-            await supabase
-                .from('task_table')
-                .delete()
-                .eq('task_id', widget.task.taskId);
-            Navigator.of(context).pop('delete');
-          },
-          child: Text('Delete', style: TextStyle(color: Colors.red)),
+          onPressed: _deleting ? null : _deleteTask,
+          child: Text('Delete', style: TextStyle(color: _deleting ? Colors.grey : Colors.red)),
         ),
       ],
     );

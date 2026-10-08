@@ -255,4 +255,5 @@ flutter:
     - assets/background/beach-battle-background.jpg
     - assets/music/battle_music.mp3
     - assets/music/menu_music.mp3
+    - assets/sounds/task_complete.wav
     - .env

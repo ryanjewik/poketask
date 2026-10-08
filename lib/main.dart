@@ -12,6 +12,7 @@ import 'pages/pokebattle_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import 'services/music_service.dart';
+import 'services/sfx_service.dart';
 import 'pages/login_form.dart';
 import 'pages/signup_form.dart';
 import 'pages/starter_select.dart';
@@ -36,6 +37,7 @@ Future<void> main() async {
 // Replace with your local time zone
   await NotificationService.initialize();
   await NotificationService.requestPermissions();
+  SfxService().preload(); // so the first task-complete chime plays instantly
   // Optional: Run a simple query to test connection
   final supabase = Supabase.instance.client;
   runApp(MyApp());
