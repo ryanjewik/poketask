@@ -4,6 +4,7 @@ import '../services/my_scaffold.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../models/task.dart';
 import '../services/task_form.dart';
+import '../services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -73,11 +74,91 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
-  void _addTask(Task task) {
+  // Whole calendar days between two dates (DST-safe).
+  int _daysBetween(DateTime from, DateTime to) {
+    return DateTime.utc(to.year, to.month, to.day)
+        .difference(DateTime.utc(from.year, from.month, from.day))
+        .inDays;
+  }
+
+  // Drag-and-drop: move the task to the drop time, keeping its duration.
+  // TaskDataSource.convertAppointmentToObject hands back the untouched Task,
+  // so details.appointment still carries the original dates here.
+  void _onDragEnd(AppointmentDragEndDetails details) {
+    final appointment = details.appointment;
+    final droppingTime = details.droppingTime;
+    if (appointment is! Task || droppingTime == null) return;
+    final task = appointment;
+    DateTime newStart;
+    DateTime newEnd;
+    if (task.isAllDay) {
+      final spanDays = _daysBetween(task.startDate, task.endDate);
+      newStart = startOfDay(droppingTime);
+      newEnd = endOfDay(DateTime(newStart.year, newStart.month,
+          newStart.day + (spanDays < 0 ? 0 : spanDays)));
+    } else {
+      final duration = task.endDate.difference(task.startDate);
+      newStart = droppingTime;
+      newEnd = droppingTime.add(duration.isNegative ? Duration.zero : duration);
+    }
+    _persistTaskDates(task, newStart, newEnd);
+  }
+
+  void _onAppointmentResizeEnd(AppointmentResizeEndDetails details) {
+    final appointment = details.appointment;
+    if (appointment is! Task) return;
+    final task = appointment;
+    DateTime newStart = details.startTime ?? task.startDate;
+    DateTime newEnd = details.endTime ?? task.endDate;
+    if (task.isAllDay) {
+      newStart = startOfDay(newStart);
+      newEnd = endOfDay(newEnd);
+    }
+    if (newEnd.isBefore(newStart)) {
+      setState(() => _dataSource = TaskDataSource(_tasks));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('End can\'t be before the start.')),
+      );
+      return;
+    }
+    _persistTaskDates(task, newStart, newEnd);
+  }
+
+  // Optimistically applies new dates, saves them, and reverts on failure.
+  Future<void> _persistTaskDates(Task task, DateTime newStart, DateTime newEnd) async {
+    final oldStart = task.startDate;
+    final oldEnd = task.endDate;
+    if (newStart == oldStart && newEnd == oldEnd) {
+      // Dropped back in place (or an invalid drop): just resync the view.
+      setState(() => _dataSource = TaskDataSource(_tasks));
+      return;
+    }
     setState(() {
-      _tasks.add(task);
+      task.startDate = newStart;
+      task.endDate = newEnd;
       _dataSource = TaskDataSource(_tasks);
     });
+    try {
+      await Supabase.instance.client
+          .from('task_table')
+          .update({
+            'start_date': newStart.toIso8601String(),
+            'end_date': newEnd.toIso8601String(),
+          })
+          .eq('task_id', task.taskId);
+    } catch (e) {
+      debugPrint('❌ Failed to move task ${task.taskId}: $e');
+      task.startDate = oldStart;
+      task.endDate = oldEnd;
+      if (!mounted) return;
+      setState(() => _dataSource = TaskDataSource(_tasks));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Couldn\'t move "${task.taskText}". Please try again.')),
+      );
+      return;
+    }
+    // Fire-and-forget: never throws.
+    NotificationService.scheduleTaskReminders(task);
   }
 
   @override
@@ -94,6 +175,8 @@ class _CalendarPageState extends State<CalendarPage> {
                 view: CalendarView.week,
                 allowDragAndDrop: true,
                 allowAppointmentResize: true,
+                onDragEnd: _onDragEnd,
+                onAppointmentResizeEnd: _onAppointmentResizeEnd,
                 allowViewNavigation: true,
                 showNavigationArrow: true,
                 backgroundColor: Colors.transparent, // Let parent container handle background
@@ -117,9 +200,13 @@ class _CalendarPageState extends State<CalendarPage> {
                         context: context,
                         builder: (context) => TaskDetailsCard(task: task),
                       );
+                      if (!mounted) return;
                       if (result == 'delete') {
+                        // A recurring delete can remove many rows, so reload.
+                        await _fetchTasksForTrainer(trainerId);
+                      } else {
+                        // Dates/completion may have been edited in place.
                         setState(() {
-                          _tasks.removeWhere((t) => t.taskId == task.taskId);
                           _dataSource = TaskDataSource(_tasks);
                         });
                       }
@@ -190,7 +277,9 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                   );
                   if (newTask != null) {
-                    _addTask(newTask);
+                    // A recurring task inserts many rows but onSubmit returns
+                    // only the first, so reload everything.
+                    await _fetchTasksForTrainer(trainerId);
                   }
                 },
                 backgroundColor: Color(0xFFFF0000),
@@ -237,6 +326,14 @@ class TaskDataSource extends CalendarDataSource {
   @override
   bool isAllDay(int index) {
     return appointments![index].isAllDay;
+  }
+
+  // Required for drag/resize with custom objects. Returns the Task unchanged:
+  // CalendarPage applies, persists (and on failure reverts) the new dates in
+  // onDragEnd/onAppointmentResizeEnd, which need the original dates.
+  @override
+  dynamic convertAppointmentToObject(dynamic customData, Appointment appointment) {
+    return customData;
   }
 }
 

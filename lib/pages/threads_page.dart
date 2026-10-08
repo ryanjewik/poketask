@@ -346,10 +346,10 @@ class _ThreadsPageState extends State<ThreadsPage> {
       context: context,
       builder: (context) => TaskDetailsCard(task: task),
     );
+    if (!mounted) return;
     if (result == 'delete') {
-      setState(() {
-        threadTasks.remove(task);
-      });
+      // A recurring delete can remove many tasks, so reload from the DB.
+      await fetchThreadTasks();
     } else {
       setState(() {
         // This will update the UI if isCompleted or notes changed

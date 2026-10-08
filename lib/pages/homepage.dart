@@ -7,6 +7,7 @@ import '../services/task_details_card.dart';
 import '../models/pokemon.dart';
 import '../models/trainer.dart';
 import '../services/music_service.dart';
+import '../services/notification_service.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,6 +38,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   List<Task> tasks = [];
 
   late final String trainerId;
+
+  // Trainer whose reminders were rebuilt this app session. The resync clears
+  // stale alarms and refills the reminder window, so it runs once per launch
+  // (per trainer), not on every refetch.
+  static String? _remindersResyncedFor;
 
 
 
@@ -152,6 +158,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             response.map((item) => Task.fromJson(item)),
           );
         });
+        if (_remindersResyncedFor != trainerId) {
+          _remindersResyncedFor = trainerId;
+          // Fire-and-forget; never throws and doesn't block the UI.
+          NotificationService.resyncTaskReminders(tasks);
+        }
       }
       //debugPrint('✅ Task data: \\${response}');
     } catch (e) {
@@ -352,13 +363,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                                               context: context,
                                               builder: (context) => TaskDetailsCard(task: task),
                                             );
+                                            // The card edits this Task in place (completion, dates,
+                                            // notes), so only a delete needs a refetch. Refetching
+                                            // on every close could race the card's optimistic
+                                            // completion write and load the stale row.
                                             if (result == 'delete') {
-                                              // Optionally handle delete
-                                            }
-                                            Future.microtask(() async {
                                               await fetchTaskData();
-                                              if (mounted) setState(() {});
-                                            });
+                                            }
+                                            if (mounted) setState(() {});
                                           },
                                           child: Container(
                                             height: 50,
