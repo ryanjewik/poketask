@@ -330,6 +330,8 @@ class _ThreadsPageState extends State<ThreadsPage> {
                           }
                         },
                       ),
+                      // Keep the button clear of the system navigation bar.
+                      SizedBox(height: 16 + MediaQuery.paddingOf(context).bottom),
                     ],
                   ),
                 ),

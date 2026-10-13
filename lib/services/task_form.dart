@@ -373,7 +373,9 @@ class _TaskFormState extends State<TaskForm> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          // Extra bottom space so the Add button can scroll clear of the
+          // system navigation bar (apps draw edge-to-edge on Android 15+).
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.paddingOf(context).bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:poketask/services/ability_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/task.dart';
@@ -64,6 +65,7 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
     setState(() => applyState(completed, completed ? now : DateTime(2100)));
     _syncTaskReminders(completed);
     if (completed) unawaited(_sfx.playTaskComplete());
+    _completionHaptics(completed);
 
     final TaskCompletionResult result;
     try {
@@ -133,6 +135,17 @@ class _TaskDetailsCardState extends State<TaskDetailsCard> {
 
   /// Fire-and-forget: completed tasks lose their reminders, reopened ones get
   /// them back. NotificationService never throws.
+  /// Completing gets a quick double pulse to match the chime; un-completing a
+  /// single light tap. Follows the phone's system "touch vibration" setting.
+  void _completionHaptics(bool completed) {
+    if (!completed) {
+      HapticFeedback.lightImpact();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    Future<void>.delayed(const Duration(milliseconds: 120), HapticFeedback.heavyImpact);
+  }
+
   void _syncTaskReminders(bool completed) {
     if (completed) {
       unawaited(NotificationService.cancelTaskReminders(widget.task.taskId));
